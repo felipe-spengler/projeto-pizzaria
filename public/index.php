@@ -44,6 +44,22 @@ switch ($request) {
         $stmt = $db->query("SELECT * FROM flavors WHERE is_available = 1");
         echo json_encode($stmt->fetchAll());
         break;
+
+    // Admin Routes
+    case '/admin':
+    case '/admin/dashboard':
+        require __DIR__ . '/../views/admin/dashboard.php';
+        break;
+    case '/admin/orders/update':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
+            $stmt->execute([$_POST['status'], $_POST['order_id']]);
+            header('Location: /admin/dashboard');
+            exit;
+        }
+        break;
+
     default:
         http_response_code(404);
         require __DIR__ . '/../views/404.php';
