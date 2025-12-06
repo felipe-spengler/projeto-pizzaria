@@ -1,4 +1,4 @@
--- Database Schema for Pizzaria System
+-- Database Schema for Casa Nova Pizzaria
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -35,6 +35,20 @@ CREATE TABLE `categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
+-- Table structure for table `flavors`
+--
+
+CREATE TABLE `flavors` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `type` enum('salgado','doce','calzone') DEFAULT 'salgado',
+  `description` text,
+  `additional_price` decimal(10,2) DEFAULT 0.00,
+  `is_available` boolean DEFAULT TRUE,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
 -- Table structure for table `products`
 --
 
@@ -45,24 +59,12 @@ CREATE TABLE `products` (
   `description` text,
   `price` decimal(10,2) NOT NULL,
   `image_url` varchar(255) DEFAULT NULL,
-  `is_customizable` boolean DEFAULT FALSE, -- If true, user picks flavors
+  `is_customizable` boolean DEFAULT FALSE, 
+  `allowed_flavor_types` varchar(255) DEFAULT 'salgado', -- comma separated types: salgado,doce
   `max_flavors` int DEFAULT 1,
   `active` boolean DEFAULT TRUE,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`category_id`) REFERENCES `categories`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `flavors` (for customizable pizzas)
---
-
-CREATE TABLE `flavors` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `description` text,
-  `additional_price` decimal(10,2) DEFAULT 0.00,
-  `is_available` boolean DEFAULT TRUE,
-  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -93,14 +95,13 @@ CREATE TABLE `order_items` (
   `quantity` int(11) NOT NULL DEFAULT 1,
   `unit_price` decimal(10,2) NOT NULL,
   `subtotal` decimal(10,2) NOT NULL,
-  `flavors_desc` text, -- JSON or comma separated list of flavor IDs/Names if customizable
   PRIMARY KEY (`id`),
   FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`),
   FOREIGN KEY (`product_id`) REFERENCES `products`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Table structure for table `order_item_flavors` (Junction table for precise flavor tracking)
+-- Table structure for table `order_item_flavors`
 --
 
 CREATE TABLE `order_item_flavors` (
@@ -112,18 +113,181 @@ CREATE TABLE `order_item_flavors` (
   FOREIGN KEY (`flavor_id`) REFERENCES `flavors`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Initial Data
-INSERT INTO `categories` (`name`, `slug`, `icon`) VALUES ('Pizzas', 'pizzas', 'pizza-slice'), ('Bebidas', 'bebidas', 'wine-bottle');
+-- Data Population
 
-INSERT INTO `flavors` (`name`, `description`, `additional_price`) VALUES 
-('Calabresa', 'Calabresa fatiada, cebola e orégano', 0.00),
-('Mussarela', 'Mussarela, tomate e orégano', 0.00),
-('Portuguesa', 'Presunto, mussarela, ovo, cebola e ervilha', 2.00),
-('Quatro Queijos', 'Mussarela, provolone, parmesão e gorgonzola', 5.00);
+-- 1. Categories
+INSERT INTO `categories` (`id`, `name`, `slug`, `icon`) VALUES 
+(1, 'Pizzas', 'pizzas', 'pizza-slice'),
+(2, 'Calzones', 'calzones', 'bread-slice'),
+(3, 'Combos', 'combos', 'box-open'),
+(4, 'Bebidas', 'bebidas', 'wine-bottle');
 
-INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `image_url`) VALUES
-(1, 'Pizza Grande', 'Pizza de 8 fatias, escolha até 2 sabores', 49.90, 1, 2, 'assets/img/pizza-grande.jpg'),
-(1, 'Pizza Gigante', 'Pizza de 12 fatias, escolha até 3 sabores', 69.90, 1, 3, 'assets/img/pizza-gigante.jpg'),
-(2, 'Coca-Cola 2L', 'Refrigerante garrafa 2 litros', 12.00, 0, 0, 'assets/img/coca-2l.jpg');
+-- 2. Flavors
+
+-- Tradicionais Salgados
+INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
+('Catufilé', 'Mussarela, filé, catupiry, orégano.', 'salgado', 0.00),
+('Cinco Queijos', 'Mussarela, provolone, parmesão, catupiry, cheddar, orégano.', 'salgado', 0.00),
+('Brutos', 'Mussarela, doritos, calabresa, orégano.', 'salgado', 0.00),
+('Tacos', 'Mussarela, carne moída, cheddar, molho pimenta, doritos, orégano.', 'salgado', 0.00),
+('Filé alho e óleo', 'Mussarela, filé, alho, azeite de oliva, orégano.', 'salgado', 0.00),
+('Filé com azeitona', 'Mussarela, provolone, catupiry, parmesão, filé, orégano.', 'salgado', 0.00),
+('Frango Especial', 'Mussarela, frango, cream cheese, orégano.', 'salgado', 0.00),
+('Medusa', 'Mussarela, lombo, bacon, calabresa, catupiry, orégano.', 'salgado', 0.00),
+('Quatro queijos bacon', 'Mussarela, provolone, catupiry, parmesão, bacon, orégano.', 'salgado', 0.00),
+('Frango cremoso', 'Mussarela, frango em cubos, cream cheese, orégano.', 'salgado', 0.00),
+('Sertanejo', 'Mussarela, lombo, bacon, alho, azeitona, tomate, orégano.', 'salgado', 0.00),
+('Sinatra', 'Mussarela, peperoni, azeitona, cebola, orégano.', 'salgado', 0.00),
+('Tomate Seco', 'Mussarela, tomate seco, rúcula, orégano.', 'salgado', 0.00),
+('Vegetariana', 'Mussarela, brócolis, milho, palmito, rúcula, tomate, orégano.', 'salgado', 0.00),
+('Alho e óleo', 'Mussarela, alho, azeite de oliva, orégano.', 'salgado', 0.00),
+('Atum', 'Mussarela, atum, orégano.', 'salgado', 0.00),
+('Americana', 'Mussarela, escarola, calabresa, tomate, orégano.', 'salgado', 0.00),
+('A Toledo', 'Mussarela, palmito, catupiry, lombo, azeitona, orégano.', 'salgado', 0.00),
+('Bacon', 'Mussarela, bacon, orégano.', 'salgado', 0.00),
+('Baconbreeza', 'Mussarela, calabresa, bacon, orégano.', 'salgado', 0.00),
+('Baconcheddar', 'Mussarela, bacon, cheddar, orégano.', 'salgado', 0.00),
+('Bolonhesa', 'Mussarela, carne moída, parmesão, tomate, orégano.', 'salgado', 0.00),
+('Baiana', 'Mussarela, calabresa moída, tomate, pimentão, pimenta vermelha, orégano.', 'salgado', 0.00),
+('Brasileira', 'Mussarela, presunto, milho, tomate, orégano.', 'salgado', 0.00),
+('Calabresa', 'Mussarela, calabresa, orégano.', 'salgado', 0.00),
+('Calacongo', 'Mussarela, calabresa, frango, catupiry, orégano.', 'salgado', 0.00),
+('Canadense', 'Mussarela, lombo, catupiry, orégano.', 'salgado', 0.00),
+('Catarina', 'Mussarela, calabresa, ovo, alho, tomate, orégano.', 'salgado', 0.00),
+('Caipira', 'Mussarela, milho, frango, bacon, tomate, orégano.', 'salgado', 0.00),
+('Croacante', 'Mussarela, bacon, batata palha, orégano.', 'salgado', 0.00),
+('Chilena', 'Mussarela, atum, cebola, orégano.', 'salgado', 0.00),
+('Bacon com Milho', 'Mussarela, bacon, milho, orégano.', 'salgado', 0.00),
+('Escarola', 'Mussarela, escarola, bacon, orégano.', 'salgado', 0.00),
+('Espanhola', 'Mussarela, calabresa, alho, tomate, orégano.', 'salgado', 0.00),
+('Frango', 'Mussarela, frango desfiado, orégano.', 'salgado', 0.00),
+('Marguerita', 'Mussarela, parmesão, tomate cereja, manjericão, orégano.', 'salgado', 0.00),
+('Mineira', 'Mussarela, palmito, milho, parmesão, tomate, orégano.', 'salgado', 0.00),
+('Napolitana', 'Mussarela, tomate, parmesão, orégano.', 'salgado', 0.00),
+('Palmito', 'Mussarela, palmito, orégano.', 'salgado', 0.00),
+('Peperoni', 'Mussarela, peperoni, orégano.', 'salgado', 0.00),
+('Portuguesa', 'Mussarela, presunto, ovos, cebola, azeitona, orégano.', 'salgado', 0.00),
+('Frango Catupiry', 'Mussarela, frango, catupiry, orégano.', 'salgado', 0.00),
+('Havaiana', 'Mussarela, bacon, abacaxi.', 'salgado', 0.00),
+('Italiana', 'Mussarela, salame italiano, parmesão, cebola, azeitona, orégano.', 'salgado', 0.00),
+('Milho', 'Mussarela, milho, orégano.', 'salgado', 0.00),
+('Musa', 'Mussarela, orégano.', 'salgado', 0.00),
+('Portuguesa Apimentada', 'Mussarela, presunto, ovos, cebola, azeitona, molho de pimenta, orégano.', 'salgado', 0.00),
+('Quatro queijos', 'Mussarela, provolone, catupiry, parmesão, orégano.', 'salgado', 0.00),
+('Salame Italiano', 'Mussarela, salame italiano, cebola, orégano.', 'salgado', 0.00),
+('Suprema', 'Mussarela, calabresa, palmito, parmesão, tomate, orégano.', 'salgado', 0.00),
+('Strogonoff bovino', 'Mussarela, strogonoff bovino, batata palha, orégano.', 'salgado', 0.00),
+('Strogonoff frango', 'Mussarela, strogonoff frango, batata palha, orégano.', 'salgado', 0.00),
+('Toledana', 'Mussarela, presunto, bacon, catupiry, orégano.', 'salgado', 0.00);
+
+-- Especiais (Considered as Salgado for now, check pricing later if needed, assuming base price or same as Tradicional for 'Salgado')
+INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
+('Brócolis', 'Mussarela, brócolis, bacon, orégano.', 'salgado', 0.00),
+('Californiana', 'Mussarela, peperoni, catupiry, orégano.', 'salgado', 0.00),
+('Do Chef', 'Mussarela, carne moída, azeitona, cebola, orégano.', 'salgado', 0.00),
+('Da Casa', 'Mussarela, bacon, ovos, parmesão, tomate, orégano.', 'salgado', 0.00),
+('Elvis', 'Mussarela, bacon, ovo, milho, tomate, orégano.', 'salgado', 0.00),
+('Formosa', 'Mussarela, calabresa, ovos, bacon, tomate, orégano.', 'salgado', 0.00),
+('Frango Brócolis', 'Mussarela, frango, brócolis, tomate, orégano.', 'salgado', 0.00),
+('Frango Mexicano', 'Mussarela, frango, peperone, tomate, orégano.', 'salgado', 0.00),
+('Frango Baiano', 'Mussarela, frango, molho de baiana da casa, orégano.', 'salgado', 0.00),
+('Maicon', 'Mussarela, bacon, peperini, orégano.', 'salgado', 0.00);
+
+-- Gourmet (Add 5.00)
+INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
+('Alcatra na mostarda', 'Mussarela, alcatra na mostarda, orégano.', 'salgado', 5.00),
+('Alcatra ao alho', 'Mussarela, alho, alcatra, orégano.', 'salgado', 5.00),
+('Coração de Frango', 'Mussarela, coração de frango, orégano.', 'salgado', 5.00),
+('Peito de Peru', 'Mussarela, peito de peru, cream cheese, orégano.', 'salgado', 5.00),
+('Tilápia', 'Mussarela, tilápia, milho, catupiry, orégano.', 'salgado', 5.00),
+('Costela bovina', 'Mussarela, costela desfiada, cebola, azeitona, tomate, orégano.', 'salgado', 5.00),
+('Costela catupiry', 'Mussarela, costela desfiada, catupiry, orégano.', 'salgado', 5.00);
+
+-- Doces
+INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
+('Abacaxi com leite ninho', 'Abacaxi, leite ninho, leite condensado.', 'doce', 0.00),
+('Sensação de valsa', 'Mussarela, chocolate preto, sonho de valsa, leite condensado.', 'doce', 0.00),
+('Suspiro', 'Mussarela, chocolate preto, morango, suspiro.', 'doce', 0.00),
+('Ovomaltine', 'Mussarela, chocolate preto, ovomaltine, leite condensado.', 'doce', 0.00),
+('Pina colada', 'Mussarela, abacaxi, coco, chocolate branco.', 'doce', 0.00),
+('Abacaxi', 'Mussarela, abacaxi, leite condensado, açúcar, canela.', 'doce', 0.00),
+('Abacaxi nevado', 'Mussarela, abacaxi, chocolate branco, leite condensado.', 'doce', 0.00),
+('Banana', 'Mussarela, leite condensado, banana, açúcar, canela.', 'doce', 0.00),
+('Beijinho', 'Mussarela, chocolate branco, coco ralado, leite condensado.', 'doce', 0.00),
+('Brigadeiro', 'Mussarela, chocolate preto, granulado, leite condensado.', 'doce', 0.00),
+('Bis', 'Mussarela, chocolate preto, bis, leite condensado.', 'doce', 0.00),
+('Banana Nevada', 'Mussarela, banana, chocolate branco, leite condensado.', 'doce', 0.00),
+('Chocobanana', 'Mussarela, banana, chocolate preto, leite condensado.', 'doce', 0.00),
+('Chokito', 'Mussarela, chocolate preto, flokos arroz, leite condensado.', 'doce', 0.00),
+('Chocolate Branco', 'Mussarela, chocolate branco, leite condensado.', 'doce', 0.00),
+('Chocolate Preto', 'Mussarela, chocolate preto, leite condensado.', 'doce', 0.00),
+('Cereja', 'Mussarela, chocolate preto, amendoim, leite condensado.', 'doce', 0.00),
+('Prestígio', 'Mussarela, chocolate preto, coco ralado, leite condensado.', 'doce', 0.00),
+('Dois Amores', 'Mussarela, chocolate branco e preto, leite condensado.', 'doce', 0.00),
+('Kit Kat', 'Mussarela, chocolate branco, kit kat, leite condensado.', 'doce', 0.00),
+('Limão', 'Mussarela, chocolate branco, raspas limão, leite condensado.', 'doce', 0.00),
+('Mms', 'Mussarela, chocolate preto, mms, leite condensado.', 'doce', 0.00),
+('Ninho', 'Mussarela, chocolate preto, leite ninho, leite condensado.', 'doce', 0.00),
+('Negresco', 'Mussarela, chocolate branco, negresco, creme leite.', 'doce', 0.00),
+('Paçoca', 'Mussarela, chocolate preto, paçoca rolas, leite condensado.', 'doce', 0.00),
+('Sensação (Preto)', 'Mussarela, chocolate preto, morango, leite condensado.', 'doce', 0.00),
+('Sedutora (Branco)', 'Mussarela, chocolate branco, morango, leite condensado.', 'doce', 0.00);
+
+-- Gourmet Doce (Add 5.00)
+INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
+('Banoff', 'Mussarela, doce de leite, banana, chocolate branco, canela.', 'doce', 5.00),
+('Fondue', 'Mussarela, chocolate preto, morango, banana, abacaxi, chocolate forneavel.', 'doce', 5.00),
+('Floresta Negra', 'Mussarela, chocolate preto, bis, cereja, leite condensado.', 'doce', 5.00),
+('Nutella', 'Mussarela, nutela, leite condensado.', 'doce', 5.00);
+
+-- Calzone Flavors
+INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
+('Calzone Portuguesa', 'Mussarela, ovos, presunto, cebola, azeitona, orégano.', 'calzone', 0.00),
+('Calzone Catufrango', 'Mussarela, calabresa, frango, catupiry, orégano.', 'calzone', 0.00),
+('Calzone Moda da casa', 'Mussarela, carne moída, ovos, cebola, catupiry, orégano.', 'calzone', 0.00),
+('Calzone Abacaxi nevado', 'Mussarela, abacaxi, chocolate branco, leite condensado.', 'calzone', 0.00),
+('Calzone Chocobanana', 'Mussarela, banana, chocolate branco ou preto, leite condensado.', 'calzone', 0.00),
+('Calzone Dois amores', 'Mussarela, chocolate branco e preto, leite condensado.', 'calzone', 0.00),
+('Calzone Sensação (Preto)', 'Mussarela, chocolate preto, morango, leite condensado.', 'calzone', 0.00),
+('Calzone Sensação (Branco)', 'Mussarela, chocolate branco, morango, leite condensado.', 'calzone', 0.00);
+
+-- 3. Products
+-- Pizzas
+INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
+(1, 'Pizza Broto (25cm)', '6 Pedaços. Escolha 1 sabor.', 40.00, 1, 1, 'salgado,doce', 'assets/img/pizza-broto.jpg'),
+(1, 'Pizza Pequena (P - 30cm)', '8 Pedaços. Escolha até 2 sabores.', 49.00, 1, 2, 'salgado,doce', 'assets/img/pizza-p.jpg'),
+(1, 'Pizza Média (M - 35cm)', '12 Pedaços. Escolha até 3 sabores.', 60.00, 1, 3, 'salgado,doce', 'assets/img/pizza-m.jpg'),
+(1, 'Pizza Grande (G - 40cm)', '16 Pedaços. Escolha até 4 sabores.', 70.00, 1, 4, 'salgado,doce', 'assets/img/pizza-g.jpg'),
+(1, 'Pizza Gigante (GG - 45cm)', '20 Pedaços. Escolha até 4 sabores.', 90.00, 1, 4, 'salgado,doce', 'assets/img/pizza-gg.jpg');
+
+-- Calzones
+INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
+(2, 'Calzone (30cm)', 'Escolha 1 sabor do cardápio de calzones.', 55.00, 1, 1, 'calzone', 'assets/img/calzone.jpg');
+
+-- Combos
+INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
+(3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 76.00, 0, NULL, 'assets/img/combo.jpg'),
+(3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 95.00, 0, NULL, 'assets/img/combo.jpg'),
+(3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 113.00, 0, NULL, 'assets/img/combo.jpg'),
+(3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 0, NULL, 'assets/img/combo.jpg');
+
+-- Bebidas
+INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
+(4, 'Coca-Cola 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'assets/img/coca-2l.jpg'),
+(4, 'Coca-Cola Zero 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'assets/img/coca-zero-2l.jpg'),
+(4, 'Fanta Laranja 2L', 'Refrigerante 2L', 12.00, 0, NULL, 'assets/img/fanta-2l.jpg'),
+(4, 'Fanta Uva 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'assets/img/fanta-uva-2l.jpg'),
+(4, 'Kuat 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'assets/img/kuat-2l.jpg'),
+(4, 'Sprite 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'assets/img/sprite-2l.jpg'),
+(4, 'Guaraná Antartica 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'assets/img/guarana-2l.jpg'),
+(4, 'Coca-Cola 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'assets/img/coca-1l.jpg'),
+(4, 'Coca-Cola Zero 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'assets/img/coca-zero-1l.jpg'),
+(4, 'Guaraná Antartica 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'assets/img/guarana-1l.jpg'),
+(4, 'Coca-Cola 600ml', 'Refrigerante 600ml', 8.00, 0, NULL, 'assets/img/coca-600.jpg'),
+(4, 'Refrigerante Lata', 'Lata 350ml (Diversos)', 6.00, 0, NULL, 'assets/img/lata.jpg'),
+(4, 'Skol Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'assets/img/skol.jpg'),
+(4, 'Itaipava Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'assets/img/itaipava.jpg'),
+(4, 'Budweiser Long Neck', 'Cerveja Long Neck', 9.50, 0, NULL, 'assets/img/bud.jpg');
 
 COMMIT;
+

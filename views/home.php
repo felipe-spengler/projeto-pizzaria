@@ -9,21 +9,6 @@
     </div>
 
     <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div class="max-w-2xl animate-slide-up">
-            <span
-                class="inline-block py-1 px-3 rounded-full bg-brand-500/20 text-brand-500 font-bold text-sm mb-6 border border-brand-500/30 backdrop-blur-sm">
-                🔥 A melhor da cidade
-            </span>
-            <h1 class="font-display font-bold text-5xl md:text-7xl text-white leading-tight mb-6">
-                Sabor que <br />
-                <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-orange-500">conquista</span>.
-            </h1>
-            <p class="text-gray-300 text-lg md:text-xl mb-8 leading-relaxed">
-                Massa artesanal fermentada por 48h, ingredientes premium e forno a lenha.
-                Peça agora e receba quentinha na sua casa.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4">
                 <a href="/menu" class="btn-primary text-center">
                     Ver Cardápio
                 </a>

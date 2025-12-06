@@ -19,24 +19,6 @@
 
 <body class="bg-gray-50 flex flex-col min-h-screen">
     <!-- Navbar -->
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo -->
-                <div class="flex-shrink-0 flex items-center">
-                    <a href="/" class="flex items-center gap-2 group">
-                        <div
-                            class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white text-xl shadow-lg shadow-brand-500/30 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-pizza-slice"></i>
-                        </div>
-                        <span class="font-display font-bold text-2xl text-gray-900 tracking-tight">Pizza<span
-                                class="text-brand-600">Master</span></span>
-                    </a>
-                </div>
-
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="/" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Início</a>
                     <a href="/menu"
                         class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Cardápio</a>
                     <a href="/orders" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Meus
