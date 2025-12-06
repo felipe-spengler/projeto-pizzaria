@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
 use App\Config\Database;
 
 $id = $_GET['id'] ?? null;
@@ -49,7 +51,8 @@ include __DIR__ . '/../views/layouts/header.php';
 
                 <h1 class="font-display font-bold text-4xl text-gray-900 mb-2"><?= $product['name'] ?></h1>
                 <p class="text-2xl text-brand-600 font-bold mb-6">R$
-                    <?= number_format($product['price'], 2, ',', '.') ?></p>
+                    <?= number_format($product['price'], 2, ',', '.') ?>
+                </p>
                 <p class="text-gray-600 mb-8 leading-relaxed"><?= $product['description'] ?></p>
 
                 <form action="cart.php" method="POST" id="addToCartForm">
@@ -119,11 +122,11 @@ include __DIR__ . '/../views/layouts/header.php';
     const isCustomizable = <?= $product['is_customizable'] ? 'true' : 'false' ?>;
     const checkboxes = document.querySelectorAll('.flavor-checkbox');
 
-    if (isCustomizable) {
+     if (isCustomizable) {
         checkboxes.forEach(cb => {
             cb.addEventListener('change', () => {
                 const checked = document.querySelectorAll('.flavor-checkbox:checked');
-                if (checked.length > maxFlavors) {
+                 if (checked.length > maxFlavors) {
                     cb.checked = false;
                     alert(`Você pode escolher no máximo ${maxFlavors} sabores.`);
                 }
@@ -132,7 +135,7 @@ include __DIR__ . '/../views/layouts/header.php';
 
         document.getElementById('addToCartForm').addEventListener('submit', (e) => {
             const checked = document.querySelectorAll('.flavor-checkbox:checked');
-            if (checked.length === 0) {
+             if (checked.length === 0) {
                 e.preventDefault();
                 document.getElementById('flavor-error').classList.remove('hidden');
             }
