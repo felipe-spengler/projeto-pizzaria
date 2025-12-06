@@ -21,7 +21,15 @@ if (!$product) {
 
 $flavors = [];
 if ($product['is_customizable']) {
-    $flavors = $db->query("SELECT * FROM flavors WHERE is_available = 1")->fetchAll();
+    $allowedTypes = explode(',', $product['allowed_flavor_types'] ?? 'salgado');
+    // Sanitize and prepare placeholders
+    $allowedTypes = array_map('trim', $allowedTypes);
+    $in = str_repeat('?,', count($allowedTypes) - 1) . '?';
+
+    $sql = "SELECT * FROM flavors WHERE is_available = 1 AND type IN ($in) ORDER BY name ASC";
+    $stmt = $db->prepare($sql);
+    $stmt->execute($allowedTypes);
+    $flavors = $stmt->fetchAll();
 }
 
 include __DIR__ . '/../views/layouts/header.php';
@@ -120,13 +128,13 @@ include __DIR__ . '/../views/layouts/header.php';
 <script>
     const maxFlavors = <?= $product['max_flavors'] ?? 0 ?>;
     const isCustomizable = <?= $product['is_customizable'] ? 'true' : 'false' ?>;
-    const checkboxes = document.querySelectorAll('.flavor-checkbox');
+    const checkboxes = document.querySelectorAll('.flavor-checkbox ');
 
      if (isCustomizable) {
         checkboxes.forEach(cb => {
             cb.addEventListener('change', () => {
                 const checked = document.querySelectorAll('.flavor-checkbox:checked');
-                 if (checked.length > maxFlavors) {
+                  if (checked.length > maxFlavors) {
                     cb.checked = false;
                     alert(`Você pode escolher no máximo ${maxFlavors} sabores.`);
                 }
@@ -134,7 +142,7 @@ include __DIR__ . '/../views/layouts/header.php';
         });
 
         document.getElementById('addToCartForm').addEventListener('submit', (e) => {
-            const checked = document.querySelectorAll('.flavor-checkbox:checked');
+            const checked = document.querySelectorAll('.flavor-checkbox:checked'); 
              if (checked.length === 0) {
                 e.preventDefault();
                 document.getElementById('flavor-error').classList.remove('hidden');

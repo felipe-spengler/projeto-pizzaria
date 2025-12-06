@@ -254,40 +254,40 @@ INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
 -- 3. Products
 -- Pizzas
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
-(1, 'Pizza Broto (25cm)', '6 Pedaços. Escolha 1 sabor.', 40.00, 1, 1, 'salgado,doce', 'assets/img/pizza-broto.jpg'),
-(1, 'Pizza Pequena (P - 30cm)', '8 Pedaços. Escolha até 2 sabores.', 49.00, 1, 2, 'salgado,doce', 'assets/img/pizza-p.jpg'),
-(1, 'Pizza Média (M - 35cm)', '12 Pedaços. Escolha até 3 sabores.', 60.00, 1, 3, 'salgado,doce', 'assets/img/pizza-m.jpg'),
-(1, 'Pizza Grande (G - 40cm)', '16 Pedaços. Escolha até 4 sabores.', 70.00, 1, 4, 'salgado,doce', 'assets/img/pizza-g.jpg'),
-(1, 'Pizza Gigante (GG - 45cm)', '20 Pedaços. Escolha até 4 sabores.', 90.00, 1, 4, 'salgado,doce', 'assets/img/pizza-gg.jpg');
+(1, 'Pizza Broto (25cm)', '6 Pedaços. Escolha 1 sabor.', 40.00, 1, 1, 'salgado,doce', 'https://images.unsplash.com/photo-1594007654729-407eedc4be65?auto=format&fit=crop&w=800&q=80'),
+(1, 'Pizza Pequena (P - 30cm)', '8 Pedaços. Escolha até 2 sabores.', 49.00, 1, 2, 'salgado,doce', 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80'),
+(1, 'Pizza Média (M - 35cm)', '12 Pedaços. Escolha até 3 sabores.', 60.00, 1, 3, 'salgado,doce', 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80'),
+(1, 'Pizza Grande (G - 40cm)', '16 Pedaços. Escolha até 4 sabores.', 70.00, 1, 4, 'salgado,doce', 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80'),
+(1, 'Pizza Gigante (GG - 45cm)', '20 Pedaços. Escolha até 4 sabores.', 90.00, 1, 4, 'salgado,doce', 'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?auto=format&fit=crop&w=800&q=80');
 
 -- Calzones
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
-(2, 'Calzone (30cm)', 'Escolha 1 sabor do cardápio de calzones.', 55.00, 1, 1, 'calzone', 'assets/img/calzone.jpg');
+(2, 'Calzone (30cm)', 'Escolha 1 sabor do cardápio de calzones.', 55.00, 1, 1, 'calzone', 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80');
 
 -- Combos
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
-(3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 76.00, 0, NULL, 'assets/img/combo.jpg'),
-(3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 95.00, 0, NULL, 'assets/img/combo.jpg'),
-(3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 113.00, 0, NULL, 'assets/img/combo.jpg'),
-(3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 0, NULL, 'assets/img/combo.jpg');
+(3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 76.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 95.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 113.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80');
 
 -- Bebidas
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
-(4, 'Coca-Cola 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'assets/img/coca-2l.jpg'),
-(4, 'Coca-Cola Zero 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'assets/img/coca-zero-2l.jpg'),
-(4, 'Fanta Laranja 2L', 'Refrigerante 2L', 12.00, 0, NULL, 'assets/img/fanta-2l.jpg'),
-(4, 'Fanta Uva 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'assets/img/fanta-uva-2l.jpg'),
-(4, 'Kuat 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'assets/img/kuat-2l.jpg'),
-(4, 'Sprite 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'assets/img/sprite-2l.jpg'),
-(4, 'Guaraná Antartica 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'assets/img/guarana-2l.jpg'),
-(4, 'Coca-Cola 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'assets/img/coca-1l.jpg'),
-(4, 'Coca-Cola Zero 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'assets/img/coca-zero-1l.jpg'),
-(4, 'Guaraná Antartica 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'assets/img/guarana-1l.jpg'),
-(4, 'Coca-Cola 600ml', 'Refrigerante 600ml', 8.00, 0, NULL, 'assets/img/coca-600.jpg'),
-(4, 'Refrigerante Lata', 'Lata 350ml (Diversos)', 6.00, 0, NULL, 'assets/img/lata.jpg'),
-(4, 'Skol Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'assets/img/skol.jpg'),
-(4, 'Itaipava Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'assets/img/itaipava.jpg'),
-(4, 'Budweiser Long Neck', 'Cerveja Long Neck', 9.50, 0, NULL, 'assets/img/bud.jpg');
+(4, 'Coca-Cola 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
+(4, 'Coca-Cola Zero 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
+(4, 'Fanta Laranja 2L', 'Refrigerante 2L', 12.00, 0, NULL, 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
+(4, 'Fanta Uva 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
+(4, 'Kuat 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=800&q=80'),
+(4, 'Sprite 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
+(4, 'Guaraná Antartica 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=800&q=80'),
+(4, 'Coca-Cola 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
+(4, 'Coca-Cola Zero 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
+(4, 'Guaraná Antartica 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=800&q=80'),
+(4, 'Coca-Cola 600ml', 'Refrigerante 600ml', 8.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
+(4, 'Refrigerante Lata', 'Lata 350ml (Diversos)', 6.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
+(4, 'Skol Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'https://images.unsplash.com/photo-1659714850889-7603c9d18721?auto=format&fit=crop&w=800&q=80'),
+(4, 'Itaipava Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'https://images.unsplash.com/photo-1659714850889-7603c9d18721?auto=format&fit=crop&w=800&q=80'),
+(4, 'Budweiser Long Neck', 'Cerveja Long Neck', 9.50, 0, NULL, 'https://images.unsplash.com/photo-1663431326402-af4eb05a6977?auto=format&fit=crop&w=800&q=80');
 
 COMMIT;
 

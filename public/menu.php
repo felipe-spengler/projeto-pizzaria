@@ -51,43 +51,61 @@ include __DIR__ . '/../views/layouts/header.php';
                     ?>
                     <div class="card group flex flex-col h-full">
                         <div class="relative h-56 overflow-hidden">
-                            <?php if ($product['image_url']): ?>
-                                <img src="<?= $product['image_url'] ?>" alt="<?= $product['name'] ?>"
-                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                            <?php else: ?>
-                                <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                                    <i class="fas fa-image text-4xl"></i>
-                                </div>
-                            <?php endif; ?>
+                            <div class="relative h-56 overflow-hidden">
+                                <?php
+                                $imgUrl = $product['image_url'];
+                                // Fallback for broken local paths
+                                if (str_starts_with($imgUrl, 'assets/')) {
+                                    switch ($category['name']) {
+                                        case 'Calzones':
+                                            $imgUrl = 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80';
+                                            break;
+                                        case 'Bebidas':
+                                            $imgUrl = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
+                                            break;
+                                        default:
+                                            $imgUrl = 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80';
+                                            break;
+                                    }
+                                }
+                                ?>
+                                <?php if ($imgUrl): ?>
+                                    <img src="<?= $imgUrl ?>" alt="<?= $product['name'] ?>"
+                                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                <?php else: ?>
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                                        <i class="fas fa-image text-4xl"></i>
+                                    </div>
+                                <?php endif; ?>
 
-                            <?php if ($product['is_customizable']): ?>
-                                <div
-                                    class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-lg text-xs font-medium">
-                                    <i class="fas fa-palette mr-1"></i> Personalizável
-                                </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="p-6 flex flex-col flex-grow">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-display font-bold text-xl text-gray-900"><?= $product['name'] ?></h3>
-                                <span class="font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-lg">
-                                    R$ <?= number_format($product['price'], 2, ',', '.') ?>
-                                </span>
+                                <?php if ($product['is_customizable']): ?>
+                                    <div
+                                        class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-lg text-xs font-medium">
+                                        <i class="fas fa-palette mr-1"></i> Personalizável
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <p class="text-gray-500 text-sm mb-6 flex-grow"><?= $product['description'] ?></p>
 
-                            <a href="product.php?id=<?= $product['id'] ?>"
-                                class="btn-primary w-full text-center flex items-center justify-center gap-2 group-hover:bg-brand-700">
-                                <i class="fas fa-plus"></i>
-                                <?php echo $product['is_customizable'] ? 'Montar Pizza' : 'Adicionar'; ?>
-                            </a>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-display font-bold text-xl text-gray-900"><?= $product['name'] ?></h3>
+                                    <span class="font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-lg">
+                                        R$ <?= number_format($product['price'], 2, ',', '.') ?>
+                                    </span>
+                                </div>
+                                <p class="text-gray-500 text-sm mb-6 flex-grow"><?= $product['description'] ?></p>
+
+                                <a href="product.php?id=<?= $product['id'] ?>"
+                                    class="btn-primary w-full text-center flex items-center justify-center gap-2 group-hover:bg-brand-700">
+                                    <i class="fas fa-plus"></i>
+                                    <?php echo $product['is_customizable'] ? 'Montar Pizza' : 'Adicionar'; ?>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
-    <?php endforeach; ?>
-</div>
+        <?php endforeach; ?>
+    </div>
 
-<?php include __DIR__ . '/../views/layouts/footer.php'; ?>
+    <?php include __DIR__ . '/../views/layouts/footer.php'; ?>
