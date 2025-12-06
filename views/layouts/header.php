@@ -1,11 +1,28 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pizzaria Premium</title>
-    <link href="/assets/css/style.css" rel="stylesheet">
+    <!-- Tailwind CSS via CDN (Fix styling issues immediately) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185',
+                            500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,18 +36,35 @@
 
 <body class="bg-gray-50 flex flex-col min-h-screen">
     <!-- Navbar -->
-                    <a href="/menu"
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="index.php" class="flex items-center gap-2 group">
+                        <div
+                            class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white text-xl shadow-lg shadow-brand-500/30 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-pizza-slice"></i>
+                        </div>
+                        <span class="font-display font-bold text-2xl text-gray-900 tracking-tight">Casa<span
+                                class="text-brand-600">Nova</span></span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="menu.php"
                         class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Cardápio</a>
-                    <a href="/orders" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Meus
+                    <a href="orders.php" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Meus
                         Pedidos</a>
 
                     <div class="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
-                        <a href="/cart" class="relative p-2 text-gray-600 hover:text-brand-600 transition-colors">
+                        <a href="cart.php" class="relative p-2 text-gray-600 hover:text-brand-600 transition-colors">
                             <i class="fas fa-shopping-bag text-xl"></i>
                             <span
                                 class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-brand-600 rounded-full text-xs font-bold text-white shadow-sm">0</span>
                         </a>
-                        <a href="/login" class="btn-primary py-2 px-5 text-sm">
+                        <a href="login.php" class="btn-primary py-2 px-5 text-sm">
                             Entrar
                         </a>
                     </div>
@@ -48,13 +82,13 @@
         <!-- Mobile Menu -->
         <div class="md:hidden hidden bg-white border-t border-gray-100" id="mobile-menu">
             <div class="px-4 pt-2 pb-4 space-y-1">
-                <a href="/"
+                <a href="index.php"
                     class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-brand-600">Início</a>
-                <a href="/menu"
+                <a href="menu.php"
                     class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-brand-600">Cardápio</a>
-                <a href="/cart"
+                <a href="cart.php"
                     class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-brand-600">Carrinho</a>
-                <a href="/login"
+                <a href="login.php"
                     class="block px-3 py-2 mt-4 text-center rounded-xl font-bold bg-brand-600 text-white shadow-lg shadow-brand-500/30">Entrar</a>
             </div>
         </div>

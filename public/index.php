@@ -1,67 +1,150 @@
-<?php
+<?php include __DIR__ . '/../views/layouts/header.php'; ?>
 
-require_once __DIR__ . '/../vendor/autoload.php';
+<!-- Hero Section -->
+<div class="relative bg-dark-bg min-h-[600px] flex items-center overflow-hidden">
+    <!-- Overlay/Background Image placeholder - would be real image in prod -->
+    <div class="absolute inset-0 bg-gradient-to-r from-dark-bg via-dark-bg/95 to-dark-bg/50 z-10"></div>
+    <div
+        class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-40">
+    </div>
 
-use App\Config\Database;
-use Dotenv\Dotenv;
+    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div class="max-w-2xl animate-slide-up">
+            <span
+                class="inline-block py-1 px-3 rounded-full bg-brand-500/20 text-brand-500 font-bold text-sm mb-6 border border-brand-500/30 backdrop-blur-sm">
+                🔥 A melhor da cidade
+            </span>
+            <h1 class="font-display font-bold text-5xl md:text-7xl text-white leading-tight mb-6">
+                Casa Nova <br />
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-orange-500">Pizzaria</span>
+            </h1>
+            <p class="text-gray-300 text-lg md:text-xl mb-8 leading-relaxed">
+                Massa artesanal fermentada por 48h, ingredientes premium e forno a lenha.
+                Peça agora e receba quentinha na sua casa.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="menu.php" class="btn-primary text-center">
+                    Ver Cardápio
+                </a>
+                <a href="#featured"
+                    class="px-6 py-3 rounded-xl font-semibold text-white border border-gray-600 hover:bg-white/10 transition-all text-center">
+                    Conhecer Sabores
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
-// Load environment variables
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
-$dotenv->safeLoad();
+<!-- Featured Section -->
+<section id="featured" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <h2 class="font-display font-bold text-3xl md:text-4xl text-gray-900 mb-4">Mais Pedidas</h2>
+            <p class="text-gray-600 text-lg">As favoritas dos nossos clientes, preparadas com carinho especial.</p>
+        </div>
 
-// Basic Router
-$request = $_SERVER['REQUEST_URI'];
-$basePath = ''; // If in subdirectory, add here
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Product Card 1 -->
+            <div class="card group">
+                <div class="relative h-64 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Pizza"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    <button
+                        class="absolute bottom-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-600 shadow-lg hover:bg-brand-600 hover:text-white transition-all transform hover:scale-110">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div
+                        class="absolute top-4 left-4 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Popular
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3
+                            class="font-display font-bold text-xl text-gray-900 group-hover:text-brand-600 transition-colors">
+                            Pizza Calabresa</h3>
+                        <span class="font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-lg">R$ 49,90</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-4 line-clamp-2">Molho de tomate especial, mussarela derretida,
+                        fatias de calabresa defumada e cebola roxa.</p>
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i class="far fa-clock"></i> 30-40 min
+                        <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                        <i class="fas fa-fire text-orange-500"></i> Forno a lenha
+                    </div>
+                </div>
+            </div>
 
-// Remove query string
-$request = strtok($request, '?');
+            <!-- Product Card 2 -->
+            <div class="card group">
+                <div class="relative h-64 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Pizza"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    <button
+                        class="absolute bottom-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-600 shadow-lg hover:bg-brand-600 hover:text-white transition-all transform hover:scale-110">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3
+                            class="font-display font-bold text-xl text-gray-900 group-hover:text-brand-600 transition-colors">
+                            Quatro Queijos</h3>
+                        <span class="font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-lg">R$ 55,90</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-4 line-clamp-2">Blend exclusivo de Mussarela, Provolone,
+                        Gorgonzola e Parmesão gratinado.</p>
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i class="far fa-clock"></i> 30-40 min
+                        <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                        <i class="fas fa-leaf text-green-500"></i> Vegetariana
+                    </div>
+                </div>
+            </div>
+        </div>
 
-// Route Dispatcher
-switch ($request) {
-    case '/':
-    case '/home':
-        require __DIR__ . '/../views/home.php';
-        break;
-    case '/menu':
-        require __DIR__ . '/../views/menu.php';
-        break;
-    case '/product':
-        require __DIR__ . '/../views/product.php';
-        break;
-    case '/cart':
-        require __DIR__ . '/../views/cart.php';
-        break;
-    case '/login':
-        require __DIR__ . '/../views/auth/login.php';
-        break;
-    case '/register':
-        require __DIR__ . '/../views/auth/register.php';
-        break;
-    case '/api/flavors':
-        // Simple API endpoint example
-        header('Content-Type: application/json');
-        $db = Database::getInstance()->getConnection();
-        $stmt = $db->query("SELECT * FROM flavors WHERE is_available = 1");
-        echo json_encode($stmt->fetchAll());
-        break;
+        <div class="text-center mt-12">
+            <a href="menu.php"
+                class="inline-flex items-center gap-2 font-semibold text-brand-600 hover:text-brand-700 transition-colors">
+                Ver cardápio completo <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
 
-    // Admin Routes
-    case '/admin':
-    case '/admin/dashboard':
-        require __DIR__ . '/../views/admin/dashboard.php';
-        break;
-    case '/admin/orders/update':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $db = Database::getInstance()->getConnection();
-            $stmt = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
-            $stmt->execute([$_POST['status'], $_POST['order_id']]);
-            header('Location: /admin/dashboard');
-            exit;
-        }
-        break;
+<!-- Values Section -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div class="p-6">
+                <div
+                    class="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center text-brand-600 text-2xl mb-6 mx-auto">
+                    <i class="fas fa-truck-fast"></i>
+                </div>
+                <h3 class="font-display font-bold text-xl mb-3">Entrega Express</h3>
+                <p class="text-gray-500">Entregamos quente e rápido na sua casa em até 40 minutos.</p>
+            </div>
+            <div class="p-6">
+                <div
+                    class="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center text-brand-600 text-2xl mb-6 mx-auto">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                <h3 class="font-display font-bold text-xl mb-3">Qualidade Premium</h3>
+                <p class="text-gray-500">Ingredientes selecionados e importados para o melhor sabor.</p>
+            </div>
+            <div class="p-6">
+                <div
+                    class="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center text-brand-600 text-2xl mb-6 mx-auto">
+                    <i class="fas fa-mobile-screen"></i>
+                </div>
+                <h3 class="font-display font-bold text-xl mb-3">Pedido Fácil</h3>
+                <p class="text-gray-500">Peça pelo site ou app em poucos cliques e acompanhe tudo.</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-    default:
-        http_response_code(404);
-        require __DIR__ . '/../views/404.php';
-        break;
-}
+<?php include __DIR__ . '/../views/layouts/footer.php'; ?>
