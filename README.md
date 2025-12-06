@@ -13,8 +13,8 @@ O projeto já vem configurado com Docker e Docker Compose, incluindo banco de da
    ```bash
    docker compose up -d --build
    ```
-3. O servidor estará rodando em: `http://localhost:8080`
-4. Acesse o PHPMyAdmin em: `http://localhost:8081`
+3. O servidor estará rodando em: `http://localhost:5000`
+4. Acesse o PHPMyAdmin em: `http://localhost:5001`
 
 **Observação:** A primeira vez que você rodar o docker-compose, o banco de dados será inicializado automaticamente com o schema definido em `database.sql`.
 
