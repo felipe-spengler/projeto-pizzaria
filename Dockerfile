@@ -10,19 +10,6 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
-# Install Node.js and NPM
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-
-# Enable Apache rewrite module
-RUN a2enmod rewrite
-
 # Helper to install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -34,10 +21,6 @@ COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-interaction --optimize-autoloader
-
-# Install Frontend dependencies and build CSS
-RUN npm install
-RUN npm run build:css
 
 # Setup permissions
 RUN chown -R www-data:www-data /var/www/html \

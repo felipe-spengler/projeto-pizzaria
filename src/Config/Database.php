@@ -10,10 +10,11 @@ class Database {
     private $conn;
 
     private function __construct() {
-        $host = $_ENV['DB_HOST'] ?? 'mysql'; // Service name in docker-compose
+        $host = $_ENV['DB_HOST'] ?? 'whatsapp-chatt_mysql_app'; // Use o host interno como fallback se quiser
         $db_name = $_ENV['DB_NAME'] ?? 'pizzaria';
-        $username = $_ENV['DB_USER'] ?? 'root';
-        $password = $_ENV['DB_PASS'] ?? 'password';
+        $username = $_ENV['DB_USER'] ?? 'pizzaria';
+        // AQUI: Ajuste o nome da variável de ambiente para ser lida corretamente
+        $password = $_ENV['DB_PASSWORD'] ?? 'password';
 
         try {
             $this->conn = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8mb4", $username, $password);
