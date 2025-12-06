@@ -41,7 +41,7 @@ CREATE TABLE `categories` (
 CREATE TABLE `flavors` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
-  `type` enum('salgado','doce','calzone') DEFAULT 'salgado',
+  `type` enum('salgado','doce','calzone','refrigerante','cerveja') DEFAULT 'salgado',
   `description` text,
   `additional_price` decimal(10,2) DEFAULT 0.00,
   `is_available` boolean DEFAULT TRUE,
@@ -180,7 +180,7 @@ INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
 ('Strogonoff frango', 'Mussarela, strogonoff frango, batata palha, orégano.', 'salgado', 0.00),
 ('Toledana', 'Mussarela, presunto, bacon, catupiry, orégano.', 'salgado', 0.00);
 
--- Especiais (Considered as Salgado for now, check pricing later if needed, assuming base price or same as Tradicional for 'Salgado')
+-- Especiais
 INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
 ('Brócolis', 'Mussarela, brócolis, bacon, orégano.', 'salgado', 0.00),
 ('Californiana', 'Mussarela, peperoni, catupiry, orégano.', 'salgado', 0.00),
@@ -233,7 +233,7 @@ INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
 ('Sensação (Preto)', 'Mussarela, chocolate preto, morango, leite condensado.', 'doce', 0.00),
 ('Sedutora (Branco)', 'Mussarela, chocolate branco, morango, leite condensado.', 'doce', 0.00);
 
--- Gourmet Doce (Add 5.00)
+-- Gourmet Doce
 INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
 ('Banoff', 'Mussarela, doce de leite, banana, chocolate branco, canela.', 'doce', 5.00),
 ('Fondue', 'Mussarela, chocolate preto, morango, banana, abacaxi, chocolate forneavel.', 'doce', 5.00),
@@ -251,6 +251,21 @@ INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
 ('Calzone Sensação (Preto)', 'Mussarela, chocolate preto, morango, leite condensado.', 'calzone', 0.00),
 ('Calzone Sensação (Branco)', 'Mussarela, chocolate branco, morango, leite condensado.', 'calzone', 0.00);
 
+-- Bebidas Flavors (NOVOS)
+INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
+('Coca-Cola Original', '', 'refrigerante', 0.00),
+('Coca-Cola Zero', '', 'refrigerante', 0.00),
+('Fanta Laranja', '', 'refrigerante', 0.00),
+('Fanta Uva', '', 'refrigerante', 0.00),
+('Kuat', '', 'refrigerante', 0.00),
+('Sprite', '', 'refrigerante', 0.00),
+('Guaraná Antarctica', '', 'refrigerante', 0.00),
+('Skol', '', 'cerveja', 0.00),
+('Itaipava', '', 'cerveja', 0.00),
+('Brahma', '', 'cerveja', 0.00),
+('Budweiser', '', 'cerveja', 0.00),
+('Heineken', '', 'cerveja', 0.00);
+
 -- 3. Products
 -- Pizzas
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
@@ -266,28 +281,18 @@ INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_custo
 
 -- Combos
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
-(3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 76.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
-(3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 95.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
-(3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L. (Broto Doce: Choc. Branco ou Preto)', 113.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L.', 76.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L.', 95.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L.', 113.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
 (3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80');
 
--- Bebidas
-INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
-(4, 'Coca-Cola 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
-(4, 'Coca-Cola Zero 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
-(4, 'Fanta Laranja 2L', 'Refrigerante 2L', 12.00, 0, NULL, 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
-(4, 'Fanta Uva 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
-(4, 'Kuat 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=800&q=80'),
-(4, 'Sprite 2L', 'Refrigerante 2L', 14.00, 0, NULL, 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
-(4, 'Guaraná Antartica 2L', 'Refrigerante 2L', 15.00, 0, NULL, 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=800&q=80'),
-(4, 'Coca-Cola 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
-(4, 'Coca-Cola Zero 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
-(4, 'Guaraná Antartica 1L', 'Refrigerante 1L', 10.00, 0, NULL, 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=800&q=80'),
-(4, 'Coca-Cola 600ml', 'Refrigerante 600ml', 8.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
-(4, 'Refrigerante Lata', 'Lata 350ml (Diversos)', 6.00, 0, NULL, 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80'),
-(4, 'Skol Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'https://images.unsplash.com/photo-1659714850889-7603c9d18721?auto=format&fit=crop&w=800&q=80'),
-(4, 'Itaipava Lata', 'Cerveja Lata 350ml', 6.00, 0, NULL, 'https://images.unsplash.com/photo-1659714850889-7603c9d18721?auto=format&fit=crop&w=800&q=80'),
-(4, 'Budweiser Long Neck', 'Cerveja Long Neck', 9.50, 0, NULL, 'https://images.unsplash.com/photo-1663431326402-af4eb05a6977?auto=format&fit=crop&w=800&q=80');
+-- Bebidas (REORGANIZADAS)
+INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
+(4, 'Refrigerante 2L', 'Escolha o sabor.', 15.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
+(4, 'Refrigerante 1L', 'Escolha o sabor.', 10.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
+(4, 'Refrigerante 600ml', 'Escolha o sabor.', 8.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
+(4, 'Refrigerante Lata', '350ml. Escolha o sabor.', 6.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
+(4, 'Cerveja Lata', '350ml. Escolha a marca. (+18 anos)', 6.00, 1, 1, 'cerveja', 'https://images.unsplash.com/photo-1659714850889-7603c9d18721?auto=format&fit=crop&w=800&q=80'),
+(4, 'Cerveja Long Neck', '330ml. Escolha a marca. (+18 anos)', 9.50, 1, 1, 'cerveja', 'https://images.unsplash.com/photo-1663431326402-af4eb05a6977?auto=format&fit=crop&w=800&q=80');
 
 COMMIT;
-
