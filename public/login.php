@@ -45,6 +45,13 @@ include __DIR__ . '/../views/layouts/header.php';
             </p>
         </div>
 
+        <?php if (isset($_SESSION['flash_success'])): ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline"><?= $_SESSION['flash_success'] ?></span>
+            </div>
+            <?php unset($_SESSION['flash_success']); ?>
+        <?php endif; ?>
+
         <?php if ($error): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                 <span class="block sm:inline"><?= $error ?></span>
