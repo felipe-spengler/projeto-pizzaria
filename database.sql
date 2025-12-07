@@ -285,10 +285,10 @@ INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_custo
 
 -- Combos
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
-(3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L.', 76.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
-(3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L.', 95.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
-(3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L.', 113.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
-(3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 0, NULL, 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80');
+(3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L.', 76.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L.', 95.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L.', 113.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
+(3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80');
 
 -- Bebidas (REORGANIZADAS)
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES

@@ -4,11 +4,26 @@
 </script>
 
 <?php
-// ... existing top code ...
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Config\Database;
+
 $id = $_GET['id'] ?? null;
-// ... existing db connect ...
+if (!$id) {
+    header('Location: menu.php');
+    exit;
+}
+
+$db = Database::getInstance()->getConnection();
+$stmt = $db->prepare("SELECT * FROM products WHERE id = ?");
+$stmt->execute([$id]);
 $product = $stmt->fetch();
-// ... product not found check ...
+
+if (!$product) {
+    echo "Produto não encontrado";
+    exit;
+}
+
 
 // --- Combo Logic Definition ---
 $isCombo = str_starts_with($product['name'], 'COMBO');
