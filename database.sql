@@ -117,7 +117,7 @@ CREATE TABLE `order_item_flavors` (
 
 -- 0. Admin User
 INSERT INTO `users` (`name`, `email`, `password`, `role`) VALUES
-('Administrador', 'admin@casanova.com', 'admin123', 'admin');
+('Administrador', 'admin', 'admin123', 'admin');
 
 -- 1. Categories
 INSERT INTO `categories` (`id`, `name`, `slug`, `icon`) VALUES 

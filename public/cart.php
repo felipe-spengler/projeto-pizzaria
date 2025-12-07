@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             foreach ($flavorData as $f) {
                 $cartItem['flavors'][] = [
+                    'id' => $f['id'], // Added ID for DB insertion
                     'name' => $f['name'],
                     'price' => (float) $f['additional_price']
                 ];

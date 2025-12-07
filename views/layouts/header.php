@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -62,7 +61,7 @@
                         <a href="cart.php" class="relative p-2 text-gray-600 hover:text-brand-600 transition-colors">
                             <i class="fas fa-shopping-bag text-xl"></i>
                             <span
-                                class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-brand-600 rounded-full text-xs font-bold text-white shadow-sm">0</span>
+                                class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-brand-600 rounded-full text-xs font-bold text-white shadow-sm"><?= count($_SESSION['cart'] ?? []) ?></span>
                         </a>
                         <a href="login.php" class="btn-primary py-2 px-5 text-sm">
                             Entrar
