@@ -56,7 +56,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// 2. Checkout
+// 2. Remove from Cart
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'remove') {
+    $index = (int) $_POST['index'];
+    if (isset($_SESSION['cart'][$index])) {
+        unset($_SESSION['cart'][$index]);
+        $_SESSION['cart'] = array_values($_SESSION['cart']); // Reindex
+    }
+    header('Location: cart.php');
+    exit;
+}
+
+// 3. Checkout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'checkout') {
     if (!isset($_SESSION['user_id'])) {
         header('Location: login.php');
@@ -162,8 +173,8 @@ if (isset($_GET['success'])):
                             $total += $item['total'];
                             ?>
                             <div
-                                class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                                <div>
+                                class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group">
+                                <div class="flex-grow">
                                     <h3 class="font-bold text-gray-900 text-lg"><?= $item['name'] ?></h3>
                                     <p class="text-sm text-gray-500">Qtd: <?= $item['quantity'] ?></p>
                                     <?php if (!empty($item['flavors'])): ?>
@@ -172,7 +183,18 @@ if (isset($_GET['success'])):
                                         </p>
                                     <?php endif; ?>
                                 </div>
-                                <span class="font-bold text-brand-600">R$ <?= number_format($item['total'], 2, ',', '.') ?></span>
+
+                                <div class="flex items-center gap-6">
+                                    <span class="font-bold text-brand-600 text-lg">R$ <?= number_format($item['total'], 2, ',', '.') ?></span>
+
+                                    <form action="cart.php" method="POST">
+                                        <input type="hidden" name="action" value="remove">
+                                        <input type="hidden" name="index" value="<?= $index ?>">
+                                        <button type="submit" class="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors flex items-center justify-center" title="Remover item">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -188,16 +210,20 @@ if (isset($_GET['success'])):
 
                             <form action="cart.php" method="POST">
                                 <input type="hidden" name="action" value="checkout">
-                                <textarea name="notes" class="w-full border-gray-300 rounded-lg mb-4 text-sm"
-                                    placeholder="Observações (ex: Troco para 50)"></textarea>
+                                <textarea name="notes" class="w-full border-gray-300 rounded-lg mb-4 text-sm focus:ring-brand-500 focus:border-brand-500"
+                                    placeholder="Observações (ex: Troco para 50, retirar cebola, etc)"></textarea>
 
                                 <?php if (isset($_SESSION['user_id'])): ?>
-                                    <button type="submit" class="w-full btn-primary py-3">Finalizar Pedido</button>
+                                    <button type="submit" class="w-full btn-primary py-3 mb-3">Finalizar Pedido</button>
                                 <?php else: ?>
                                     <a href="login.php"
-                                        class="block w-full text-center bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300">Faça
+                                        class="block w-full text-center bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300 mb-3">Faça
                                         Login para Finalizar</a>
                                 <?php endif; ?>
+
+                                <a href="menu.php" class="block w-full text-center border-2 border-brand-100 text-brand-600 font-bold py-3 rounded-xl hover:bg-brand-50 transition-colors">
+                                    Continuar Comprando
+                                </a>
                             </form>
                         </div>
                     </div>
