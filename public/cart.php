@@ -12,7 +12,18 @@ $db = Database::getInstance()->getConnection();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
     $productId = $_POST['product_id'];
     $quantity = (int) $_POST['quantity'];
-    $flavors = $_POST['flavors'] ?? []; // Array of flavor IDs
+    $rawFlavors = $_POST['flavors'] ?? [];
+    $flavors = [];
+
+    // Flatten multidimensional array from steps if necessary
+    foreach ($rawFlavors as $item) {
+        if (is_array($item)) {
+            foreach ($item as $subItem)
+                $flavors[] = $subItem;
+        } else {
+            $flavors[] = $item;
+        }
+    }
 
     // Verify Product
     $stmt = $db->prepare("SELECT * FROM products WHERE id = ?");
@@ -185,12 +196,15 @@ if (isset($_GET['success'])):
                                 </div>
 
                                 <div class="flex items-center gap-6">
-                                    <span class="font-bold text-brand-600 text-lg">R$ <?= number_format($item['total'], 2, ',', '.') ?></span>
+                                    <span class="font-bold text-brand-600 text-lg">R$
+                                        <?= number_format($item['total'], 2, ',', '.') ?></span>
 
                                     <form action="cart.php" method="POST">
                                         <input type="hidden" name="action" value="remove">
                                         <input type="hidden" name="index" value="<?= $index ?>">
-                                        <button type="submit" class="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors flex items-center justify-center" title="Remover item">
+                                        <button type="submit"
+                                            class="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors flex items-center justify-center"
+                                            title="Remover item">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
@@ -210,7 +224,8 @@ if (isset($_GET['success'])):
 
                             <form action="cart.php" method="POST">
                                 <input type="hidden" name="action" value="checkout">
-                                <textarea name="notes" class="w-full border-gray-300 rounded-lg mb-4 text-sm focus:ring-brand-500 focus:border-brand-500"
+                                <textarea name="notes"
+                                    class="w-full border-gray-300 rounded-lg mb-4 text-sm focus:ring-brand-500 focus:border-brand-500"
                                     placeholder="Observações (ex: Troco para 50, retirar cebola, etc)"></textarea>
 
                                 <?php if (isset($_SESSION['user_id'])): ?>
@@ -221,7 +236,8 @@ if (isset($_GET['success'])):
                                         Login para Finalizar</a>
                                 <?php endif; ?>
 
-                                <a href="menu.php" class="block w-full text-center border-2 border-brand-100 text-brand-600 font-bold py-3 rounded-xl hover:bg-brand-50 transition-colors">
+                                <a href="menu.php"
+                                    class="block w-full text-center border-2 border-brand-100 text-brand-600 font-bold py-3 rounded-xl hover:bg-brand-50 transition-colors">
                                     Continuar Comprando
                                 </a>
                             </form>
