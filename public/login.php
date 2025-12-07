@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     $db = Database::getInstance()->getConnection();
+    // Allow login by email OR username (if we had a username column, but here we assume email column holds "admin")
     $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
@@ -26,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     } else {
-        $error = 'Email ou senha inválidos.';
+        $error = 'Usuário ou senha inválidos.';
     }
 }
 
@@ -61,10 +62,10 @@ include __DIR__ . '/../views/layouts/header.php';
         <form class="mt-8 space-y-6" action="login.php" method="POST">
             <div class="rounded-md shadow-sm -space-y-px">
                 <div>
-                    <label for="email-address" class="sr-only">Email</label>
-                    <input id="email-address" name="email" type="email" autocomplete="email" required
+                    <label for="email-address" class="sr-only">Email ou Usuário</label>
+                    <input id="email-address" name="email" type="text" autocomplete="email" required
                         class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-brand-500 focus:border-brand-500 focus:z-10 sm:text-sm"
-                        placeholder="Email">
+                        placeholder="Email ou Usuário">
                 </div>
                 <div>
                     <label for="password" class="sr-only">Senha</label>
