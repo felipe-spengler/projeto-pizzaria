@@ -1,8 +1,3 @@
-<script>
-    // Logic for Single Product vs Combo Steps
-    // We will inject the configuration from PHP below
-</script>
-
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -92,99 +87,119 @@ if (!empty($comboSteps)) {
 }
 ?>
 
-<!-- ... Header Include ... -->
-<!-- ... Image Side ... -->
-<!-- Details Side -->
-<div class="p-8 lg:p-12">
-    <a href="menu.php" class="inline-flex items-center text-gray-500 hover:text-brand-600 mb-6 transition-colors">
-        <i class="fas fa-arrow-left mr-2"></i> Voltar ao cardápio
-    </a>
+<?php include __DIR__ . '/../views/layouts/header.php'; ?>
 
-    <h1 class="font-display font-bold text-4xl text-gray-900 mb-2"><?= $product['name'] ?></h1>
-    <p class="text-2xl text-brand-600 font-bold mb-6">R$ <?= number_format($product['price'], 2, ',', '.') ?></p>
-    <p class="text-gray-600 mb-8 leading-relaxed"><?= $product['description'] ?></p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="grid grid-cols-1 lg:grid-cols-2">
+            <!-- Image Side -->
+            <div class="h-96 lg:h-auto relative bg-gray-100">
+                <?php if ($product['image_url']): ?>
+                    <img src="<?= $product['image_url'] ?>" alt="<?= $product['name'] ?>"
+                        class="w-full h-full object-cover">
+                <?php else: ?>
+                    <div class="flex items-center justify-center h-full text-gray-400">
+                        <i class="fas fa-image text-6xl"></i>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="p-8 lg:p-12">
+                <a href="menu.php"
+                    class="inline-flex items-center text-gray-500 hover:text-brand-600 mb-6 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i> Voltar ao cardápio
+                </a>
 
-    <form action="cart.php" method="POST" id="addToCartForm">
-        <input type="hidden" name="action" value="add">
-        <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-
-        <?php foreach ($comboSteps as $index => $step):
-            // Determine which flavors available for this step
-            // If type contains comma 'salgado,doce', we merge arrays
-            $stepTypes = explode(',', $step['type']);
-            $availableFlavors = [];
-            foreach ($stepTypes as $t) {
-                if (isset($allFlavors[trim($t)])) {
-                    $availableFlavors = array_merge($availableFlavors, $allFlavors[trim($t)]);
-                }
-            }
-            ?>
-            <div class="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 step-container"
-                data-max="<?= $step['max'] ?>" data-step-index="<?= $index ?>">
-                <h3 class="font-bold text-gray-900 text-lg mb-4 flex items-center justify-between">
-                    <span>
-                        <span
-                            class="bg-brand-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs mr-2"><?= $index + 1 ?></span>
-                        <?= $step['title'] ?>
-                    </span>
-                    <span class="text-xs font-normal text-gray-500 bg-white px-2 py-1 rounded-lg border border-gray-200">
-                        Máx: <?= $step['max'] ?>
-                    </span>
-                </h3>
-
-                <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                    <?php foreach ($availableFlavors as $flavor): ?>
-                        <label
-                            class="flex items-start p-3 rounded-xl border border-gray-200 cursor-pointer hover:border-brand-300 hover:bg-white transition-all select-none bg-white">
-                            <input type="checkbox" name="flavors[<?= $index ?>][]" value="<?= $flavor['id'] ?>"
-                                class="mt-1 w-5 h-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 flavor-checkbox"
-                                data-step="<?= $index ?>">
-                            <div class="ml-3 flex-grow">
-                                <div class="flex justify-between w-full">
-                                    <span class="font-medium text-gray-900 text-sm"><?= $flavor['name'] ?></span>
-                                    <?php if ($flavor['additional_price'] > 0): ?>
-                                        <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">+ R$
-                                            <?= number_format($flavor['additional_price'], 2, ',', '.') ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <?php if ($flavor['description']): ?>
-                                    <p class="text-xs text-gray-500 mt-0.5 line-clamp-1"><?= $flavor['description'] ?></p>
-                                <?php endif; ?>
-                            </div>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
-                <p class="step-error text-red-500 text-xs mt-2 hidden font-medium">
-                    <i class="fas fa-exclamation-circle mr-1"></i> Selecione pelo menos 1 sabor neste item.
+                <h1 class="font-display font-bold text-4xl text-gray-900 mb-2"><?= $product['name'] ?></h1>
+                <p class="text-2xl text-brand-600 font-bold mb-6">R$
+                    <?= number_format($product['price'], 2, ',', '.') ?>
                 </p>
-            </div>
-        <?php endforeach; ?>
+                <p class="text-gray-600 mb-8 leading-relaxed"><?= $product['description'] ?></p>
 
-        <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
-            <!-- Quantity Input ... -->
-            <!-- Submit Button ... -->
-            <!-- (Reuse existing HTML for quantity/submit) -->
-            <div class="w-32">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
-                <div class="flex items-center border border-gray-300 rounded-xl overflow-hidden">
-                    <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors"
-                        onclick="this.nextElementSibling.stepDown()">-</button>
-                    <input type="number" name="quantity" value="1" min="1" max="10"
-                        class="w-full text-center border-none focus:ring-0 p-0 text-gray-900 font-bold">
-                    <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors"
-                        onclick="this.previousElementSibling.stepUp()">+</button>
-                </div>
+                <form action="cart.php" method="POST" id="addToCartForm">
+                    <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+
+                    <?php foreach ($comboSteps as $index => $step):
+                        // Determine which flavors available for this step
+                        // If type contains comma 'salgado,doce', we merge arrays
+                        $stepTypes = explode(',', $step['type']);
+                        $availableFlavors = [];
+                        foreach ($stepTypes as $t) {
+                            if (isset($allFlavors[trim($t)])) {
+                                $availableFlavors = array_merge($availableFlavors, $allFlavors[trim($t)]);
+                            }
+                        }
+                        ?>
+                        <div class="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 step-container"
+                            data-max="<?= $step['max'] ?>" data-step-index="<?= $index ?>">
+                            <h3 class="font-bold text-gray-900 text-lg mb-4 flex items-center justify-between">
+                                <span>
+                                    <span
+                                        class="bg-brand-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs mr-2"><?= $index + 1 ?></span>
+                                    <?= $step['title'] ?>
+                                </span>
+                                <span
+                                    class="text-xs font-normal text-gray-500 bg-white px-2 py-1 rounded-lg border border-gray-200">
+                                    Máx: <?= $step['max'] ?>
+                                </span>
+                            </h3>
+
+                            <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                <?php foreach ($availableFlavors as $flavor): ?>
+                                    <label
+                                        class="flex items-start p-3 rounded-xl border border-gray-200 cursor-pointer hover:border-brand-300 hover:bg-white transition-all select-none bg-white">
+                                        <input type="checkbox" name="flavors[<?= $index ?>][]" value="<?= $flavor['id'] ?>"
+                                            class="mt-1 w-5 h-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 flavor-checkbox"
+                                            data-step="<?= $index ?>">
+                                        <div class="ml-3 flex-grow">
+                                            <div class="flex justify-between w-full">
+                                                <span class="font-medium text-gray-900 text-sm"><?= $flavor['name'] ?></span>
+                                                <?php if ($flavor['additional_price'] > 0): ?>
+                                                    <span
+                                                        class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">+
+                                                        R$
+                                                        <?= number_format($flavor['additional_price'], 2, ',', '.') ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ($flavor['description']): ?>
+                                                <p class="text-xs text-gray-500 mt-0.5 line-clamp-1"><?= $flavor['description'] ?>
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <p class="step-error text-red-500 text-xs mt-2 hidden font-medium">
+                                <i class="fas fa-exclamation-circle mr-1"></i> Selecione pelo menos 1 sabor neste item.
+                            </p>
+                        </div>
+                    <?php endforeach; ?>
+
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
+                        <!-- Quantity Input ... -->
+                        <!-- Submit Button ... -->
+                        <!-- (Reuse existing HTML for quantity/submit) -->
+                        <div class="w-32">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
+                            <div class="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                                <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors"
+                                    onclick="this.nextElementSibling.stepDown()">-</button>
+                                <input type="number" name="quantity" value="1" min="1" max="10"
+                                    class="w-full text-center border-none focus:ring-0 p-0 text-gray-900 font-bold">
+                                <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors"
+                                    onclick="this.previousElementSibling.stepUp()">+</button>
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="flex-grow btn-primary flex items-center justify-center gap-3 text-lg shadow-lg shadow-brand-200">
+                            <span>Adicionar ao Pedido</span>
+                            <i class="fas fa-shopping-bag"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
-            <button type="submit"
-                class="flex-grow btn-primary flex items-center justify-center gap-3 text-lg shadow-lg shadow-brand-200">
-                <span>Adicionar ao Pedido</span>
-                <i class="fas fa-shopping-bag"></i>
-            </button>
         </div>
-    </form>
-</div>
-</div>
-</div>
+    </div>
 </div>
 
 <script>
