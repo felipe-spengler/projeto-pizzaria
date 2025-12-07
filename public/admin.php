@@ -187,4 +187,44 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     </div>
 </div>
 
+<!-- Audio Alert (Simple Beep) -->
+<audio id="notificationSound">
+    <source
+        src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIwDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8P//OEAAAAAAA0gAAAAAAAEjAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//OEAAABi4F0AAAAJ0AAAAAAAAAAAAF8AAAAA0gAAAAAAAAAAAF8AAAAA0gAA"
+        type="audio/mpeg">
+</audio>
+
+<script>
+    // Audio context for better browser support (optional, sticking to HTML5 audio first)
+    const audio = document.getElementById('notificationSound');
+    let lastOrderId = <?= $orders[0]['id'] ?? 0 ?>;
+
+    function checkOrders() {
+        fetch(`api/check_orders.php?last_id=${lastOrderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.new_orders_count > 0 && data.max_id > lastOrderId) {
+                    // Play sound
+                    audio.play().catch(e => console.log("Audio play failed (user interaction needed first):", e));
+
+                    // Show visible alert
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-bounce cursor-pointer';
+                    alertDiv.innerHTML = '<i class="fas fa-bell mr-2"></i> Novo pedido recebido! Clique para atualizar.';
+                    alertDiv.onclick = () => location.reload();
+                    document.body.appendChild(alertDiv);
+
+                    // Auto reload after 2s sound
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                }
+            })
+            .catch(err => console.error('Error checking orders:', err));
+    }
+
+    // Poll every 10 seconds
+    setInterval(checkOrders, 10000);
+</script>
+
 <?php include __DIR__ . '/../views/admin/layouts/footer.php'; ?>
