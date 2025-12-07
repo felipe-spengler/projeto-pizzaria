@@ -115,6 +115,10 @@ CREATE TABLE `order_item_flavors` (
 
 -- Data Population
 
+-- 0. Admin User
+INSERT INTO `users` (`name`, `email`, `password`, `role`) VALUES
+('Administrador', 'admin@casanova.com', 'admin123', 'admin');
+
 -- 1. Categories
 INSERT INTO `categories` (`id`, `name`, `slug`, `icon`) VALUES 
 (1, 'Pizzas', 'pizzas', 'pizza-slice'),

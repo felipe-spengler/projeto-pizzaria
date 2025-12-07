@@ -1,7 +1,22 @@
 <?php
+session_start();
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Config\Database;
+
+// Security Check
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    header('Location: login.php');
+    exit;
+}
+
+// Logout Logic
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
 
 $db = Database::getInstance()->getConnection();
 

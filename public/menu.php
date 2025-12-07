@@ -41,7 +41,8 @@ include __DIR__ . '/../views/layouts/header.php';
                 <?= $category['name'] ?>
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Grid Layout Fixed -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 <?php
                 $catProducts = array_filter($products, function ($p) use ($category) {
                     return $p['category_id'] == $category['id'];
@@ -49,61 +50,52 @@ include __DIR__ . '/../views/layouts/header.php';
 
                 foreach ($catProducts as $product):
                     ?>
-                    <div class="card group flex flex-col h-full">
-                        <div class="relative h-56 overflow-hidden">
-                            <div class="relative h-56 overflow-hidden">
-                                <?php
-                                $imgUrl = $product['image_url'];
-                                // Fallback for broken local paths
-                                if (str_starts_with($imgUrl, 'assets/')) {
-                                    switch ($category['name']) {
-                                        case 'Calzones':
-                                            $imgUrl = 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80';
-                                            break;
-                                        case 'Bebidas':
-                                            $imgUrl = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
-                                            break;
-                                        default:
-                                            $imgUrl = 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80';
-                                            break;
-                                    }
+                    <div
+                        class="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
+                        <div class="relative h-48 overflow-hidden bg-gray-100">
+                            <?php
+                            $imgUrl = $product['image_url'];
+                            if (str_starts_with($imgUrl, 'assets/')) {
+                                switch ($category['name']) {
+                                    case 'Calzones':
+                                        $imgUrl = 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80';
+                                        break;
+                                    case 'Bebidas':
+                                        $imgUrl = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
+                                        break;
+                                    default:
+                                        $imgUrl = 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80';
+                                        break;
                                 }
-                                ?>
-                                <?php if ($imgUrl): ?>
-                                    <img src="<?= $imgUrl ?>" alt="<?= $product['name'] ?>"
-                                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                                <?php else: ?>
-                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                                        <i class="fas fa-image text-4xl"></i>
-                                    </div>
-                                <?php endif; ?>
+                            }
+                            ?>
+                            <img src="<?= $imgUrl ?>" alt="<?= $product['name'] ?>"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
 
-                                <?php if ($product['is_customizable']): ?>
-                                    <div
-                                        class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-lg text-xs font-medium">
-                                        <i class="fas fa-palette mr-1"></i> Personalizável
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="p-6 flex flex-col flex-grow">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h3 class="font-display font-bold text-xl text-gray-900"><?= $product['name'] ?></h3>
-                                    <span class="font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-lg">
-                                        R$ <?= number_format($product['price'], 2, ',', '.') ?>
-                                    </span>
+                            <?php if ($product['is_customizable']): ?>
+                                <div
+                                    class="absolute top-2 right-2 bg-brand-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                    Montar
                                 </div>
-                                <p class="text-gray-500 text-sm mb-6 flex-grow"><?= $product['description'] ?></p>
+                            <?php endif; ?>
+                        </div>
 
+                        <div class="p-5 flex flex-col flex-grow">
+                            <h3 class="font-display font-bold text-lg text-gray-900 mb-1 leading-tight"><?= $product['name'] ?>
+                            </h3>
+                            <p class="text-gray-500 text-sm mb-4 line-clamp-2 min-h-[2.5rem]"><?= $product['description'] ?></p>
+
+                            <div class="mt-auto flex items-center justify-between">
+                                <span class="text-xl font-bold text-brand-600">R$
+                                    <?= number_format($product['price'], 2, ',', '.') ?></span>
                                 <a href="product.php?id=<?= $product['id'] ?>"
-                                    class="btn-primary w-full text-center flex items-center justify-center gap-2 group-hover:bg-brand-700">
+                                    class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center hover:bg-brand-600 hover:text-white transition-colors">
                                     <i class="fas fa-plus"></i>
-                                    <?php echo $product['is_customizable'] ? 'Montar Pizza' : 'Adicionar'; ?>
                                 </a>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         <?php endforeach; ?>
     </div>
