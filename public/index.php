@@ -1,40 +1,68 @@
 <?php include __DIR__ . '/../views/layouts/header.php'; ?>
 
 <!-- Hero Section -->
-<div class="relative bg-dark-bg min-h-[600px] flex items-center overflow-hidden">
-    <!-- Overlay/Background Image placeholder - would be real image in prod -->
-    <div class="absolute inset-0 bg-gradient-to-r from-dark-bg via-dark-bg/95 to-dark-bg/50 z-10"></div>
+<div
+    class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[700px] flex items-center overflow-hidden">
+    <!-- Overlay/Background Image -->
+    <div class="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-900/90 to-transparent z-10"></div>
     <div
-        class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-40">
+        class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-30">
     </div>
 
-    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div class="max-w-2xl animate-slide-up">
+    <!-- Decorative Elements -->
+    <div class="absolute top-20 right-20 w-72 h-72 bg-brand-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-20 left-20 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl"></div>
+
+    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
+        <div class="max-w-3xl animate-slide-up">
             <span
-                class="inline-block py-1 px-3 rounded-full bg-brand-500/20 text-brand-500 font-bold text-sm mb-6 border border-brand-500/30 backdrop-blur-sm">
-                🔥 A melhor da cidade
+                class="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-gradient-to-r from-brand-500/20 to-orange-500/20 text-brand-400 font-bold text-sm mb-8 border border-brand-500/30 backdrop-blur-sm shadow-lg">
+                <i class="fas fa-fire text-orange-500 animate-pulse"></i>
+                Sinta o Sabor da Tradição!
             </span>
-            <h1 class="font-display font-bold text-5xl md:text-7xl text-white leading-tight mb-6">
+            <h1 class="font-display font-bold text-5xl md:text-7xl text-white leading-tight mb-8">
                 Casa Nova <br />
                 <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-orange-500">Pizzaria</span>
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-orange-400 to-yellow-400 animate-gradient">Pizzaria</span>
             </h1>
-            <p class="text-gray-300 text-lg md:text-xl mb-8 leading-relaxed">
-                Massa artesanal fermentada por 48h, ingredientes premium e forno a lenha.
-                Peça agora e receba quentinha na sua casa.
+            <p class="text-gray-300 text-xl md:text-2xl mb-6 leading-relaxed font-medium">
+                Com opções que vão do <span class="text-brand-400 font-bold">clássico ao gourmet</span>, temos o sabor
+                perfeito para todos os gostos.
+            </p>
+            <p class="text-gray-400 text-lg md:text-xl mb-10 leading-relaxed">
+                Pizzas assadas no capricho, com uma <span class="text-orange-400">massa fininha e crocante</span>, e
+                cobertas com <span class="text-orange-400">molhos irresistíveis</span>.
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
-                <a href="menu.php" class="btn-primary text-center">
+                <a href="menu.php"
+                    class="group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-brand-600 to-orange-600 hover:from-brand-500 hover:to-orange-500 transition-all transform hover:scale-105 hover:shadow-2xl shadow-lg">
+                    <i class="fas fa-pizza-slice group-hover:rotate-12 transition-transform"></i>
                     Ver Cardápio
-                </a>
-                <a href="#featured"
-                    class="px-6 py-3 rounded-xl font-semibold text-white border border-gray-600 hover:bg-white/10 transition-all text-center">
-                    Conhecer Sabores
+                    <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                 </a>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes gradient {
+
+        0%,
+        100% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+
+    .animate-gradient {
+        background-size: 200% 200%;
+        animation: gradient 3s ease infinite;
+    }
+</style>
 
 <!-- Featured Section -->
 <section id="featured" class="py-20 bg-gray-50">
