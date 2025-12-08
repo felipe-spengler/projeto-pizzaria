@@ -58,14 +58,25 @@
                         Pedidos</a>
 
                     <div class="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
-                        <a href="cart.php" class="relative p-2 text-gray-600 hover:text-brand-600 transition-colors">
-                            <i class="fas fa-shopping-bag text-xl"></i>
-                            <span
-                                class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-brand-600 rounded-full text-xs font-bold text-white shadow-sm"><?= count($_SESSION['cart'] ?? []) ?></span>
-                        </a>
-                        <a href="login.php" class="btn-primary py-2 px-5 text-sm">
-                            Entrar
-                        </a>
+                        <?php if (isset($_SESSION['user_id'])): ?>
+                            <a href="cart.php" class="relative p-2 text-gray-600 hover:text-brand-600 transition-colors">
+                                <i class="fas fa-shopping-bag text-xl"></i>
+                                <?php if (!empty($_SESSION['cart'])): ?>
+                                    <span
+                                        class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-brand-600 rounded-full text-xs font-bold text-white shadow-sm"><?= count($_SESSION['cart']) ?></span>
+                                <?php endif; ?>
+                            </a>
+                            <a href="orders.php" class="text-gray-600 hover:text-brand-600 transition-colors">
+                                <i class="fas fa-receipt text-xl"></i>
+                            </a>
+                            <a href="logout.php" class="btn-primary py-2 px-5 text-sm">
+                                Sair
+                            </a>
+                        <?php else: ?>
+                            <a href="login.php" class="btn-primary py-2 px-5 text-sm">
+                                Entrar
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -85,10 +96,21 @@
                     class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-brand-600">Início</a>
                 <a href="menu.php"
                     class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-brand-600">Cardápio</a>
-                <a href="cart.php"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-brand-600">Carrinho</a>
-                <a href="login.php"
-                    class="block px-3 py-2 mt-4 text-center rounded-xl font-bold bg-brand-600 text-white shadow-lg shadow-brand-500/30">Entrar</a>
+
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="cart.php"
+                        class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-brand-600">
+                        Carrinho <?php if (!empty($_SESSION['cart'])): ?>(<?= count($_SESSION['cart']) ?>)<?php endif; ?>
+                    </a>
+                    <a href="orders.php"
+                        class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-brand-600">Meus
+                        Pedidos</a>
+                    <a href="logout.php"
+                        class="block px-3 py-2 mt-4 text-center rounded-xl font-bold bg-gray-600 text-white">Sair</a>
+                <?php else: ?>
+                    <a href="login.php"
+                        class="block px-3 py-2 mt-4 text-center rounded-xl font-bold bg-brand-600 text-white shadow-lg shadow-brand-500/30">Entrar</a>
+                <?php endif; ?>
             </div>
         </div>
     </nav>

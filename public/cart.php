@@ -79,6 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
+// LOGIN REQUIRED - Redirect to login if not authenticated
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php?redirect=cart.php');
+    exit;
+}
+
 // 3. Checkout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'checkout') {
     if (!isset($_SESSION['user_id'])) {
@@ -227,7 +233,14 @@ if (isset($_GET['success'])):
             'debit_card' => '💳 Cartão de Débito',
             'cash' => '💵 Dinheiro'
         ];
-        $msg .= ($paymentLabels[$order['payment_method']] ?? ucfirst($order['payment_method'])) . "\n\n";
+        $msg .= ($paymentLabels[$order['payment_method']] ?? ucfirst($order['payment_method'])) . "\n";
+        
+        // Add change info if payment is cash and change_for is set
+        if ($order['payment_method'] == 'cash' && $order['change_for']) {
+            $msg .= "💸 Troco para: R$ " . number_format($order['change_for'], 2, ',', '.') . "\n";
+        }
+        
+        $msg .= "\n";
     }
 
     // Items
