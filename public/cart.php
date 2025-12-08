@@ -128,6 +128,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 include __DIR__ . '/../views/layouts/header.php';
 
+// Fetch User Addresses
+$userAddresses = [];
+if (isset($_SESSION['user_id'])) {
+    $stmtAddr = $db->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY id DESC");
+    $stmtAddr->execute([$_SESSION['user_id']]);
+    $userAddresses = $stmtAddr->fetchAll();
+}
+
 // Success View with WhatsApp Button
 if (isset($_GET['success'])):
     $orderId = $_GET['success'];
@@ -223,11 +231,67 @@ if (isset($_GET['success'])):
                                 <span>R$ <?= number_format($total, 2, ',', '.') ?></span>
                             </div>
 
-                            <form action="cart.php" method="POST">
+                            <form action="cart.php" method="POST" id="checkoutForm">
                                 <input type="hidden" name="action" value="checkout">
-                                <textarea name="notes"
-                                    class="w-full border-gray-300 rounded-lg mb-4 text-sm focus:ring-brand-500 focus:border-brand-500"
-                                    placeholder="Observações (ex: Troco para 50, retirar cebola, etc)"></textarea>
+                                
+                                <!-- Delivery Method -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Forma de Entrega</label>
+                                    <div class="flex gap-4">
+                                        <label class="flex items-center cursor-pointer">
+                                            <input type="radio" name="delivery_method" value="delivery" checked class="text-brand-600 focus:ring-brand-500" onclick="toggleAddress(true)">
+                                            <span class="ml-2 text-sm text-gray-900">Entrega</span>
+                                        </label>
+                                        <label class="flex items-center cursor-pointer">
+                                            <input type="radio" name="delivery_method" value="pickup" class="text-brand-600 focus:ring-brand-500" onclick="toggleAddress(false)">
+                                            <span class="ml-2 text-sm text-gray-900">Retirada</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Address Selection -->
+                                <div id="addressSection" class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Endereço de Entrega</label>
+                                    
+                                    <?php if (!empty($userAddresses)): ?>
+                                        <div class="space-y-2 mb-3 max-h-40 overflow-y-auto custom-scrollbar">
+                                            <?php foreach ($userAddresses as $addr): ?>
+                                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                                <input type="radio" name="address_option" value="<?= $addr['id'] ?>" class="mt-1 text-brand-600 focus:ring-brand-500" onclick="toggleNewAddress(false)">
+                                                <div class="ml-2">
+                                                    <span class="block text-sm text-gray-800 break-words"><?= htmlspecialchars($addr['full_address']) ?></span>
+                                                </div>
+                                            </label>
+                                            <?php endforeach; ?>
+                                            <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                                <input type="radio" name="address_option" value="new" class="text-brand-600 focus:ring-brand-500" onclick="toggleNewAddress(true)" checked>
+                                                <span class="ml-2 text-sm font-medium text-brand-600">Usar outro endereço</span>
+                                            </label>
+                                        </div>
+                                    <?php else: ?>
+                                        <input type="hidden" name="address_option" value="new">
+                                    <?php endif; ?>
+
+                                    <div id="newAddressField">
+                                        <textarea name="delivery_address" rows="3" class="w-full border-gray-300 rounded-lg text-sm focus:ring-brand-500 focus:border-brand-500" placeholder="Rua X, Número 123, Bairro Centro..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Payment Method -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Forma de Pagamento</label>
+                                    <select name="payment_method" class="w-full border-gray-300 rounded-lg text-sm focus:ring-brand-500 focus:border-brand-500">
+                                        <option value="pix">PIX</option>
+                                        <option value="credit_card">Cartão de Crédito</option>
+                                        <option value="debit_card">Cartão de Débito</option>
+                                        <option value="cash">Dinheiro</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+                                    <textarea name="notes" rows="2" class="w-full border-gray-300 rounded-lg text-sm focus:ring-brand-500 focus:border-brand-500" placeholder="Ex: Troco para 50, sem cebola..."></textarea>
+                                </div>
 
                                 <?php if (isset($_SESSION['user_id'])): ?>
                                     <button type="submit" class="w-full btn-primary py-3 mb-3">Finalizar Pedido</button>
@@ -242,6 +306,19 @@ if (isset($_GET['success'])):
                                     Continuar Comprando
                                 </a>
                             </form>
+                            <script>
+                            function toggleAddress(isDelivery) {
+                                const el = document.getElementById('addressSection');
+                                if (isDelivery) el.classList.remove('hidden');
+                                else el.classList.add('hidden');
+                            }
+                        
+                            function toggleNewAddress(show) {
+                                const el = document.getElementById('newAddressField');
+                                if (show) el.classList.remove('hidden');
+                                else el.classList.add('hidden');
+                            }
+                            </script>
                         </div>
                     </div>
                 </div>

@@ -72,7 +72,7 @@ if (!empty($comboSteps)) {
         foreach ($stepTypes as $t)
             $neededTypes[] = trim($t);
     }
-    $neededTypes = array_unique($neededTypes);
+    $neededTypes = array_values(array_unique($neededTypes));
 
     // Fetch from DB
     $in = str_repeat('?,', count($neededTypes) - 1) . '?';

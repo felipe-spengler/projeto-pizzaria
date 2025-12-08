@@ -42,9 +42,30 @@ $orders = $db->query("
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['status'])) {
     $status = $_POST['status'];
     $orderId = $_POST['order_id'];
-    $stmt = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
+    // Mark as viewed when interacting
+    $stmt = $db->prepare("UPDATE orders SET status = ?, viewed = TRUE WHERE id = ?");
     $stmt->execute([$status, $orderId]);
     header('Location: admin.php');
+    exit;
+}
+
+// Mark as Viewed
+if (isset($_GET['mark_viewed'])) {
+    $orderId = $_GET['mark_viewed'];
+    $stmt = $db->prepare("UPDATE orders SET viewed = TRUE WHERE id = ?");
+    $stmt->execute([$orderId]);
+    header('Location: admin.php');
+    exit;
+}
+
+// Print Receipt
+if (isset($_GET['print'])) {
+    $orderId = $_GET['print'];
+    // Mark as viewed
+    $stmt = $db->prepare("UPDATE orders SET viewed = TRUE WHERE id = ?");
+    $stmt->execute([$orderId]);
+    // Fetch order details
+    include __DIR__ . '/print_receipt.php';
     exit;
 }
 
@@ -101,15 +122,22 @@ include __DIR__ . '/../views/admin/layouts/header.php';
             <tbody class="divide-y divide-gray-100">
                 <?php if (count($orders) > 0): ?>
                     <?php foreach ($orders as $order): ?>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 text-gray-900 font-medium">#<?= $order['id'] ?></td>
+                        <tr class="hover:bg-gray-50 transition-colors <?= !$order['viewed'] ? 'bg-yellow-50' : '' ?>"
+                            onclick="markViewed(<?= $order['id'] ?>)" style="cursor: pointer;">
+                            <td class="px-6 py-4 text-gray-900 <?= !$order['viewed'] ? 'font-bold' : 'font-medium' ?>">
+                                #<?= $order['id'] ?></td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-bold">
                                         <?= substr($order['customer_name'], 0, 1) ?>
                                     </div>
-                                    <span class="text-gray-700 font-medium"><?= $order['customer_name'] ?></span>
+                                    <span
+                                        class="text-gray-700 <?= !$order['viewed'] ? 'font-bold' : 'font-medium' ?>"><?= $order['customer_name'] ?></span>
+                                    <?php if (!$order['viewed']): ?>
+                                        <span
+                                            class="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold animate-pulse">NOVO</span>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
@@ -138,7 +166,13 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                             <td class="px-6 py-4 text-gray-900">R$ <?= number_format($order['total_amount'], 2, ',', '.') ?>
                             </td>
                             <td class="px-6 py-4 text-gray-500 text-sm"><?= date('H:i', strtotime($order['created_at'])) ?></td>
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4 text-right" onclick="event.stopPropagation();">
+                                <!-- Print Button -->
+                                <a href="print_receipt.php?id=<?= $order['id'] ?>" target="_blank"
+                                    class="text-gray-600 hover:text-gray-800 font-medium text-sm mr-3" title="Imprimir Pedido">
+                                    <i class="fas fa-print"></i>
+                                </a>
+
                                 <form action="admin.php" method="POST" class="inline-block">
                                     <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
                                     <?php if ($order['status'] === 'pending'): ?>
@@ -225,6 +259,15 @@ include __DIR__ . '/../views/admin/layouts/header.php';
 
     // Poll every 10 seconds
     setInterval(checkOrders, 10000);
+
+    // Mark as Viewed function
+    function markViewed(orderId) {
+        fetch(`admin.php?mark_viewed=${orderId}`, { method: 'GET' })
+            .then(() => {
+                // Reload to update UI
+                location.reload();
+            });
+    }
 </script>
 
 <?php include __DIR__ . '/../views/admin/layouts/footer.php'; ?>

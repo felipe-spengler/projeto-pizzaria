@@ -1,6 +1,6 @@
-# Projeto Pizzaria Premium 🍕
+# Casa Nova Pizzaria 🍕
 
-Um sistema completo de pedidos para pizzaria desenvolvido com PHP 8.2, Docker, Javascript (Vanilla) e TailwindCSS.
+Sistema completo de pedidos online para pizzaria desenvolvido com PHP 8.2, MySQL, TailwindCSS e integração WhatsApp.
 
 ## 🚀 Como iniciar o projeto
 
@@ -32,41 +32,151 @@ Se preferir rodar sem Docker:
    ```
    E configure as credenciais do seu banco de dados local.
 3. Importe o arquivo `database.sql` no seu banco de dados MySQL.
-4. Instale o TailwindCSS (para gerar os estilos):
-   ```bash
-   npm install
-   npm run build:css
-   ```
-5. Inicie um servidor PHP:
+4. Inicie um servidor PHP:
    ```bash
    cd public
    php -S localhost:8080
    ```
 
+## 🔑 Acesso Admin
+
+Para acessar o painel administrativo:
+- **URL**: `/admin.php`
+- **Usuário**: `admin`
+- **Senha**: `admin123`
+
 ## 🛠 Tecnologias Utilizadas
 
-- **Backend**: PHP 8.2 (Vanilla com MVC simples)
-- **Frontend**: HTML5, Javascript, TailwindCSS
-- **Banco de Dados**: MySQL
+- **Backend**: PHP 8.2 (OOP com PDO)
+- **Frontend**: HTML5, Javascript (Vanilla), TailwindCSS
+- **Banco de Dados**: MySQL 8.0
 - **Infraestrutura**: Docker & Docker Compose
 - **Dependências**:
   - `phpdotenv`: Gestão de variáveis de ambiente
-  - `google/apiclient`: Login com Google (Configurar credenciais no .env)
 
 ## 📁 Estrutura de Pastas
 
-- `/src`: Código fonte do backend (Controllers, Models, Config)
-- `/public`: Ponto de entrada (index.php), assets (CSS/JS compilados)
-- `/views`: Arquivos de visualização (HTML/PHP mesclados)
-- `/database.sql`: Schema inicial do banco de dados
+```
+projeto-pizzaria/
+├── src/              # Classes PHP (Config, Database)
+├── public/           # Ponto de entrada (index.php, admin.php, cart.php)
+│   └── api/         # Endpoints AJAX (check_orders.php)
+├── views/           # Templates PHP
+│   ├── layouts/     # Header e Footer
+│   └── admin/       # Templates do painel admin
+├── database.sql     # Schema completo do banco
+└── docker-compose.yml
+```
 
-## ✨ Funcionalidades
+## ✨ Funcionalidades Implementadas
 
-- Design Premium e Responsivo
-- Cardápio Dinâmico (fácil de gerenciar via DB)
-- Personalização de Produtos (escolha de sabores)
-- Login/Cadastro (base pronta para Google Auth)
-- Carrinho de Compras (base implementada)
+### 🛒 **Sistema de Pedidos Completo**
+- ✅ Cardápio dinâmico com categorias (Pizzas, Calzones, Combos, Bebidas)
+- ✅ **Combos personalizáveis** com múltiplas etapas:
+  - Seleção de sabores de pizza (salgadas)
+  - Seleção de broto doce
+  - Escolha de bebida com acréscimo opcional
+- ✅ Sistema de sabores com preços adicionais (ex: Gourmet +R$ 5,00)
+- ✅ Carrinho de compras inteligente com cálculo automático
+- ✅ **Gerenciamento de endereços**:
+  - Salvamento automático de endereços usados
+  - Seleção rápida de endereços anteriores
+  - Opção de "Entrega" ou "Retirada no balcão"
+- ✅ Múltiplas formas de pagamento (PIX, Cartão, Dinheiro)
+- ✅ Campo de observações para customização
+
+### 📱 **Integração WhatsApp**
+- ✅ Confirmação de pedido via WhatsApp
+- ✅ Mensagem detalhada com:
+  - Informações do cliente
+  - Endereço de entrega completo
+  - Lista de itens com sabores escolhidos
+  - Forma de pagamento
+  - Observações
+  - Total do pedido
+
+### 👨‍💼 **Painel Administrativo Avançado**
+- ✅ **Dashboard em tempo real**:
+  - Estatísticas do dia (faturamento, pedidos)
+  - Lista de pedidos recentes
+- ✅ **Sistema de notificações**:
+  - Verificação automática de novos pedidos (a cada 10s)
+  - Som de campainha para alertar novos pedidos
+  - Destaque visual para pedidos não visualizados (negrito + badge "NOVO")
+  - Background amarelo para pedidos não lidos
+- ✅ **Gerenciamento de status**:
+  - Pending → Preparing → Out for Delivery → Delivered
+  - Opção de cancelamento
+- ✅ **Impressão térmica**:
+  - Layout otimizado para impressoras de 80mm (ESC/POS)
+  - Formato tipo cupom iFood
+  - Impressão com todos os detalhes do pedido
+
+### 🎨 **Interface Premium**
+- ✅ Design moderno e responsivo
+- ✅ Tailwind CSS com tema customizado
+- ✅ Animações suaves e micro-interações
+- ✅ Otimizado para mobile e desktop
+- ✅ Font Awesome para ícones
+
+### 🔐 **Autenticação**
+- ✅ Sistema de login/cadastro
+- ✅ Sessões seguras
+- ✅ Proteção de rotas administrativas
+- ✅ Diferenciação de roles (admin/customer)
+
+## 📊 Banco de Dados
+
+### Tabelas Principais
+
+- **`users`**: Clientes e administradores
+- **`addresses`**: Endereços de entrega salvos por usuário
+- **`products`**: Produtos do cardápio
+- **`categories`**: Categorias de produtos
+- **`flavors`**: Sabores disponíveis (salgados, doces, bebidas)
+- **`orders`**: Pedidos realizados
+- **`order_items`**: Itens de cada pedido
+- **`order_item_flavors`**: Sabores escolhidos por item
+
+### Migrations Disponíveis
+
+Se você já tem um banco rodando, use estes scripts SQL para atualizar:
+
+- `update_addresses.sql` - Adiciona tabela de endereços
+- `update_orders_table.sql` - Adiciona colunas de método de entrega e pagamento
+- `add_viewed_column.sql` - Adiciona controle de pedidos visualizados
+- `update_drink_prices.sql` - Atualiza preços das bebidas nos combos
+
+## 🚀 Deployment (Easypanel/Docker)
+
+O projeto está preparado para deploy em qualquer plataforma que suporte Docker:
+
+1. Configure as variáveis de ambiente no `.env`
+2. Execute `docker compose up -d`
+3. Importe o `database.sql` no banco de dados
+4. Acesse o painel admin e configure conforme necessário
+
+## 📝 TODO / Melhorias Futuras
+
+- [ ] Implementar hashing de senhas (bcrypt)
+- [ ] Sistema de cupons de desconto
+- [ ] Histórico completo de pedidos do cliente
+- [ ] Relatórios de vendas (gráficos)
+- [ ] Notificações push para clientes
+- [ ] API REST completa
+- [ ] Modo escuro
+
+## 🐛 Troubleshooting
+
+### Erro: "Column 'viewed' not found"
+Execute o script: `add_viewed_column.sql`
+
+### Erro: "Column 'delivery_method' not found"
+Execute o script: `update_orders_table.sql`
+
+### Bebidas nos combos não mostram preço adicional
+Execute o script: `update_drink_prices.sql`
 
 ---
-Criado por Felipe Spengler
+
+**Desenvolvido por Felipe Spengler** | Casa Nova Pizzaria 2024

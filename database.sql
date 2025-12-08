@@ -2,7 +2,7 @@
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+00:00";
+SET time_zone = "+03:00";
 
 --
 -- Table structure for table `users`
@@ -67,22 +67,36 @@ CREATE TABLE `products` (
   FOREIGN KEY (`category_id`) REFERENCES `categories`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Table structure for table `orders`
---
+-- 3. Addresses
+CREATE TABLE `addresses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `full_address` text NOT NULL,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 4. Orders
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
-  `status` enum('pending','preparing','delivery','completed','cancelled') DEFAULT 'pending',
+  `status` enum('pending','preparing','out_for_delivery','delivered','cancelled') DEFAULT 'pending',
   `total_amount` decimal(10,2) NOT NULL,
-  `payment_method` varchar(50) DEFAULT NULL,
-  `delivery_address` text NOT NULL,
+  `payment_method` varchar(50) DEFAULT 'money',
+  `delivery_method` enum('delivery','pickup') DEFAULT 'delivery',
+  `delivery_address` text,
   `notes` text,
+  `viewed` boolean DEFAULT FALSE,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ... existing tables ...
+
+
+
 
 --
 -- Table structure for table `order_items`
@@ -257,13 +271,13 @@ INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
 
 -- Bebidas Flavors (NOVOS)
 INSERT INTO `flavors` (`name`, `description`, `type`, `additional_price`) VALUES
-('Coca-Cola Original', '', 'refrigerante', 0.00),
-('Coca-Cola Zero', '', 'refrigerante', 0.00),
-('Fanta Laranja', '', 'refrigerante', 0.00),
-('Fanta Uva', '', 'refrigerante', 0.00),
+('Coca-Cola Original', '', 'refrigerante', 5.00),
+('Coca-Cola Zero', '', 'refrigerante', 5.00),
+('Fanta Laranja', '', 'refrigerante', 5.00),
+('Fanta Uva', '', 'refrigerante', 5.00),
 ('Kuat', '', 'refrigerante', 0.00),
-('Sprite', '', 'refrigerante', 0.00),
-('Guaraná Antarctica', '', 'refrigerante', 0.00),
+('Sprite', '', 'refrigerante', 5.00),
+('Guaraná Antarctica', '', 'refrigerante', 5.00),
 ('Skol', '', 'cerveja', 0.00),
 ('Itaipava', '', 'cerveja', 0.00),
 ('Brahma', '', 'cerveja', 0.00),
