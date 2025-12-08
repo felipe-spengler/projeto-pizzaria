@@ -352,6 +352,14 @@ if (isset($_GET['success'])):
 
                                 <form action="cart.php" method="POST" id="checkoutForm">
                                     <input type="hidden" name="action" value="checkout">
+                                    <input type="hidden" name="delivery_method" id="deliveryMethodInput" value="pickup">
+                                    <input type="hidden" name="address_option" id="addressOptionInput" value="">
+                                    <input type="hidden" name="street" id="streetInput" value="">
+                                    <input type="hidden" name="number" id="numberInput" value="">
+                                    <input type="hidden" name="neighborhood" id="neighborhoodInput" value="">
+                                    <input type="hidden" name="complement" id="complementInput" value="">
+                                    <input type="hidden" name="payment_method" id="paymentMethodInput" value="">
+                                    <input type="hidden" name="change_for" id="changeForInput" value="">
 
                                     <!-- Step 1: Delivery Method -->
                                     <div class="mb-6">
@@ -364,8 +372,8 @@ if (isset($_GET['success'])):
                                         <div class="grid grid-cols-2 gap-3">
                                             <!-- Pickup Option (Default) -->
                                             <label class="relative cursor-pointer group">
-                                                <input type="radio" name="delivery_method" value="pickup" checked
-                                                    class="peer sr-only" onchange="updateCheckoutFlow()">
+                                                <input type="radio" name="delivery_type" value="pickup" checked
+                                                    class="peer sr-only" onchange="selectDeliveryType('pickup')">
                                                 <div
                                                     class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
                                                     <i
@@ -382,8 +390,8 @@ if (isset($_GET['success'])):
 
                                             <!-- Delivery Option -->
                                             <label class="relative cursor-pointer group">
-                                                <input type="radio" name="delivery_method" value="delivery" class="peer sr-only"
-                                                    onchange="updateCheckoutFlow()">
+                                                <input type="radio" name="delivery_type" value="delivery" class="peer sr-only"
+                                                    onchange="selectDeliveryType('delivery')">
                                                 <div
                                                     class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
                                                     <i
@@ -400,107 +408,27 @@ if (isset($_GET['success'])):
                                         </div>
                                     </div>
 
-                                    <!-- Step 2: Address & Payment (Only for Delivery) -->
-                                    <div id="deliveryOnlySection" class="hidden">
-                                        <!-- Address -->
-                                        <div class="mb-6">
-                                            <div class="flex items-center gap-2 mb-4">
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm">
-                                                    2</div>
-                                                <h3 class="font-bold text-gray-900 text-lg">Endereço de Entrega</h3>
+                                    <!-- Delivery Summary (shows after modal completion) -->
+                                    <div id="deliverySummary" class="hidden mb-6">
+                                        <div class="bg-brand-50 border border-brand-200 rounded-lg p-4">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <h4 class="font-bold text-brand-900 flex items-center gap-2">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                    Endereço de Entrega
+                                                </h4>
+                                                <button type="button" onclick="openDeliveryModal()"
+                                                    class="text-brand-600 hover:text-brand-700 text-sm font-semibold">
+                                                    Alterar
+                                                </button>
                                             </div>
+                                            <p id="addressSummaryText" class="text-sm text-gray-700 mb-3"></p>
 
-                                            <?php if (!empty($userAddresses)): ?>
-                                                <div class="space-y-2 mb-3">
-                                                    <?php foreach ($userAddresses as $addr): ?>
-                                                        <label class="relative cursor-pointer">
-                                                            <input type="radio" name="address_option" value="<?= $addr['id'] ?>"
-                                                                class="peer sr-only">
-                                                            <div
-                                                                class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300">
-                                                                <div class="flex items-start gap-3">
-                                                                    <i class="fas fa-map-marker-alt text-brand-600 mt-1"></i>
-                                                                    <span
-                                                                        class="text-sm text-gray-800 flex-grow"><?= htmlspecialchars($addr['full_address']) ?></span>
-                                                                </div>
-                                                            </div>
-                                                            <div
-                                                                class="absolute top-3 right-3 w-5 h-5 bg-brand-600 rounded-full items-center justify-center text-white text-xs hidden peer-checked:flex">
-                                                                <i class="fas fa-check"></i>
-                                                            </div>
-                                                        </label>
-                                                    <?php endforeach; ?>
-
-                                                    <label class="relative cursor-pointer">
-                                                        <input type="radio" name="address_option" value="new" checked
-                                                            class="peer sr-only"
-                                                            onclick="document.getElementById('newAddressField').classList.remove('hidden')">
-                                                        <div
-                                                            class="p-3 rounded-lg border-2 border-dashed border-brand-300 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-400">
-                                                            <div class="flex items-center gap-3">
-                                                                <i class="fas fa-plus-circle text-brand-600"></i>
-                                                                <span class="text-sm font-semibold text-brand-600">Usar outro
-                                                                    endereço</span>
-                                                            </div>
-                                                        </div>
-                                                    </label>
-                                                </div>
-                                            <?php else: ?>
-                                                <input type="hidden" name="address_option" value="new">
-                                            <?php endif; ?>
-
-                                            <div id="newAddressField" class="mt-3">
-                                                <textarea name="delivery_address" rows="3"
-                                                    class="w-full border-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 p-3 transition-all"
-                                                    placeholder="Rua, Número, Bairro, Complemento..."></textarea>
-                                            </div>
-                                        </div>
-
-                                        <!-- Payment Method -->
-                                        <div class="mb-6">
-                                            <div class="flex items-center gap-2 mb-4">
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm">
-                                                    3</div>
-                                                <h3 class="font-bold text-gray-900 text-lg">Forma de Pagamento</h3>
-                                            </div>
-                                            <div class="grid grid-cols-2 gap-2">
-                                                <label class="relative cursor-pointer">
-                                                    <input type="radio" name="payment_method" value="pix" checked
-                                                        class="peer sr-only">
-                                                    <div
-                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
-                                                        <i class="fas fa-qrcode text-xl text-brand-600 mb-1 block"></i>
-                                                        <span class="text-xs font-bold text-gray-700 block">PIX</span>
-                                                    </div>
-                                                </label>
-                                                <label class="relative cursor-pointer">
-                                                    <input type="radio" name="payment_method" value="credit_card"
-                                                        class="peer sr-only">
-                                                    <div
-                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
-                                                        <i class="fas fa-credit-card text-xl text-brand-600 mb-1 block"></i>
-                                                        <span class="text-xs font-bold text-gray-700 block">Crédito</span>
-                                                    </div>
-                                                </label>
-                                                <label class="relative cursor-pointer">
-                                                    <input type="radio" name="payment_method" value="debit_card"
-                                                        class="peer sr-only">
-                                                    <div
-                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
-                                                        <i class="fas fa-credit-card text-xl text-brand-600 mb-1 block"></i>
-                                                        <span class="text-xs font-bold text-gray-700 block">Débito</span>
-                                                    </div>
-                                                </label>
-                                                <label class="relative cursor-pointer">
-                                                    <input type="radio" name="payment_method" value="cash" class="peer sr-only">
-                                                    <div
-                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
-                                                        <i class="fas fa-money-bill-wave text-xl text-brand-600 mb-1 block"></i>
-                                                        <span class="text-xs font-bold text-gray-700 block">Dinheiro</span>
-                                                    </div>
-                                                </label>
+                                            <div class="border-t border-brand-200 pt-3 mt-3">
+                                                <h4 class="font-bold text-brand-900 flex items-center gap-2 mb-2">
+                                                    <i class="fas fa-credit-card"></i>
+                                                    Pagamento
+                                                </h4>
+                                                <p id="paymentSummaryText" class="text-sm text-gray-700"></p>
                                             </div>
                                         </div>
                                     </div>
@@ -513,12 +441,12 @@ if (isset($_GET['success'])):
                                         </label>
                                         <textarea name="notes" rows="3"
                                             class="w-full border-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 p-3 transition-all"
-                                            placeholder="Ex: Troco para R$ 50, sem cebola, etc..."></textarea>
+                                            placeholder="Ex: sem cebola, tirar azeitona, etc..."></textarea>
                                     </div>
 
                                     <!-- Submit Button -->
                                     <?php if (isset($_SESSION['user_id'])): ?>
-                                        <button type="submit"
+                                        <button type="submit" id="submitBtn"
                                             class="w-full bg-gradient-to-r from-brand-600 to-orange-600 hover:from-brand-500 hover:to-orange-500 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl mb-3 flex items-center justify-center gap-2">
                                             <i class="fas fa-check-circle"></i>
                                             <span>Confirmar Pedido</span>
@@ -542,16 +470,375 @@ if (isset($_GET['success'])):
                         </div>
                     </div>
 
-                    <script>
-                        function updateCheckoutFlow() {
-                            const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked').value;
-                            const deliverySection = document.getElementById('deliveryOnlySection');
+                    <!-- Delivery Modal Wizard -->
+                    <div id="deliveryModal"
+                        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+                        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <!-- Modal Header -->
+                            <div class="bg-gradient-to-r from-brand-600 to-orange-600 p-6 text-white sticky top-0 z-10">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h2 class="font-display font-bold text-2xl">Dados da Entrega</h2>
+                                        <p class="text-brand-100 text-sm mt-1">Passo <span id="modalStep">1</span> de 2</p>
+                                    </div>
+                                    <button type="button" onclick="closeDeliveryModal()"
+                                        class="text-white hover:text-gray-200 transition-colors">
+                                        <i class="fas fa-times text-2xl"></i>
+                                    </button>
+                                </div>
+                                <!-- Progress Bar -->
+                                <div class="mt-4 bg-white bg-opacity-20 rounded-full h-2">
+                                    <div id="progressBar" class="bg-white h-2 rounded-full transition-all duration-300"
+                                        style="width: 50%"></div>
+                                </div>
+                            </div>
 
-                            if (deliveryMethod === 'delivery') {
-                                deliverySection.classList.remove('hidden');
+                            <!-- Step 1: Address -->
+                            <div id="step1" class="p-6">
+                                <h3 class="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
+                                    <i class="fas fa-map-marker-alt text-brand-600"></i>
+                                    Endereço de Entrega
+                                </h3>
+
+                                <!-- Saved Addresses -->
+                                <?php if (!empty($userAddresses)): ?>
+                                    <div class="mb-6">
+                                        <h4 class="font-semibold text-gray-700 mb-3">Endereços Salvos</h4>
+                                        <div class="space-y-2">
+                                            <?php foreach ($userAddresses as $addr): ?>
+                                                <label class="relative cursor-pointer block">
+                                                    <input type="radio" name="modal_address_option" value="<?= $addr['id'] ?>"
+                                                        class="peer sr-only" onchange="selectSavedAddress(this)"
+                                                        data-street="<?= htmlspecialchars($addr['street']) ?>"
+                                                        data-number="<?= htmlspecialchars($addr['number']) ?>"
+                                                        data-neighborhood="<?= htmlspecialchars($addr['neighborhood']) ?>"
+                                                        data-complement="<?= htmlspecialchars($addr['complement'] ?? '') ?>"
+                                                        data-city="<?= htmlspecialchars($addr['city']) ?>"
+                                                        data-state="<?= htmlspecialchars($addr['state']) ?>">
+                                                    <div
+                                                        class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300">
+                                                        <div class="flex items-start gap-3">
+                                                            <i class="fas fa-map-marker-alt text-brand-600 mt-1"></i>
+                                                            <div class="flex-grow">
+                                                                <p class="font-semibold text-gray-900">
+                                                                    <?= htmlspecialchars($addr['street']) ?>,
+                                                                    <?= htmlspecialchars($addr['number']) ?></p>
+                                                                <p class="text-sm text-gray-600">
+                                                                    <?= htmlspecialchars($addr['neighborhood']) ?> -
+                                                                    <?= htmlspecialchars($addr['city']) ?>/<?= htmlspecialchars($addr['state']) ?>
+                                                                </p>
+                                                                <?php if ($addr['complement']): ?>
+                                                                    <p class="text-xs text-gray-500 italic">
+                                                                        <?= htmlspecialchars($addr['complement']) ?></p>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="absolute top-4 right-4 w-6 h-6 bg-brand-600 rounded-full items-center justify-center text-white text-xs hidden peer-checked:flex">
+                                                        <i class="fas fa-check"></i>
+                                                    </div>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+
+                                        <div class="my-4 flex items-center gap-3">
+                                            <div class="flex-grow border-t border-gray-300"></div>
+                                            <span class="text-gray-500 text-sm font-medium">ou</span>
+                                            <div class="flex-grow border-t border-gray-300"></div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- New Address Form -->
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 mb-3">Novo Endereço</h4>
+                                    <div class="space-y-4">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Cidade *</label>
+                                                <input type="text" id="modalCity" value="Toledo" readonly
+                                                    class="w-full border-2 border-gray-300 bg-gray-100 rounded-lg px-3 py-2 text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
+                                                <input type="text" id="modalState" value="PR" readonly
+                                                    class="w-full border-2 border-gray-300 bg-gray-100 rounded-lg px-3 py-2 text-sm">
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Bairro *</label>
+                                            <input type="text" id="modalNeighborhood" required
+                                                class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                placeholder="Ex: Centro">
+                                        </div>
+
+                                        <div class="grid grid-cols-3 gap-4">
+                                            <div class="col-span-2">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Rua *</label>
+                                                <input type="text" id="modalStreet" required
+                                                    class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                    placeholder="Ex: Av. Paraná">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Número *</label>
+                                                <input type="text" id="modalNumber" required
+                                                    class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                    placeholder="123">
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Ponto de
+                                                Referência</label>
+                                            <input type="text" id="modalComplement"
+                                                class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                placeholder="Ex: Próximo ao supermercado">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" onclick="goToStep2()"
+                                    class="mt-6 w-full bg-gradient-to-r from-brand-600 to-orange-600 hover:from-brand-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl transition-all">
+                                    Próximo: Forma de Pagamento
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+
+                            <!-- Step 2: Payment -->
+                            <div id="step2" class="p-6 hidden">
+                                <button type="button" onclick="backToStep1()"
+                                    class="text-brand-600 hover:text-brand-700 font-semibold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-arrow-left"></i>
+                                    Voltar
+                                </button>
+
+                                <h3 class="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
+                                    <i class="fas fa-credit-card text-brand-600"></i>
+                                    Forma de Pagamento
+                                </h3>
+
+                                <div class="grid grid-cols-2 gap-3 mb-6">
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="modal_payment" value="pix" class="peer sr-only"
+                                            onchange="updatePaymentSelection()">
+                                        <div
+                                            class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                            <i class="fas fa-qrcode text-2xl text-brand-600 mb-2 block"></i>
+                                            <span class="text-sm font-bold text-gray-700 block">PIX</span>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="modal_payment" value="credit_card" class="peer sr-only"
+                                            onchange="updatePaymentSelection()">
+                                        <div
+                                            class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                            <i class="fas fa-credit-card text-2xl text-brand-600 mb-2 block"></i>
+                                            <span class="text-sm font-bold text-gray-700 block">Crédito</span>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="modal_payment" value="debit_card" class="peer sr-only"
+                                            onchange="updatePaymentSelection()">
+                                        <div
+                                            class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                            <i class="fas fa-credit-card text-2xl text-brand-600 mb-2 block"></i>
+                                            <span class="text-sm font-bold text-gray-700 block">Débito</span>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="modal_payment" value="cash" class="peer sr-only"
+                                            onchange="updatePaymentSelection()">
+                                        <div
+                                            class="p-4 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                            <i class="fas fa-money-bill-wave text-2xl text-brand-600 mb-2 block"></i>
+                                            <span class="text-sm font-bold text-gray-700 block">Dinheiro</span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Change Field (only for cash) -->
+                                <div id="changeField" class="hidden mb-6">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        <i class="fas fa-hand-holding-usd text-brand-600 mr-1"></i>
+                                        Precisa de troco para quanto? *
+                                    </label>
+                                    <div class="relative">
+                                        <span
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">R$</span>
+                                        <input type="number" id="modalChange" step="0.01" min="0"
+                                            class="w-full border-2 border-gray-200 rounded-lg pl-12 pr-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                            placeholder="50,00">
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Deixe em branco se não precisar de troco</p>
+                                </div>
+
+                                <button type="button" onclick="confirmDelivery()"
+                                    class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                                    <i class="fas fa-check-circle"></i>
+                                    Confirmar Dados
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        let currentModalStep = 1;
+                        let selectedAddressType = 'new'; // 'new' or addressId
+
+                        function selectDeliveryType(type) {
+                            if (type === 'delivery') {
+                                openDeliveryModal();
                             } else {
-                                deliverySection.classList.add('hidden');
+                                document.getElementById('deliveryMethodInput').value = 'pickup';
+                                document.getElementById('deliverySummary').classList.add('hidden');
                             }
+                        }
+
+                        function openDeliveryModal() {
+                            document.getElementById('deliveryModal').classList.remove('hidden');
+                            currentModalStep = 1;
+                            updateModalStep();
+                        }
+
+                        function closeDeliveryModal() {
+                            // If closing without completing, revert to pickup
+                            if (document.getElementById('deliveryMethodInput').value !== 'delivery') {
+                                document.querySelector('input[name="delivery_type"][value="pickup"]').checked = true;
+                            }
+                            document.getElementById('deliveryModal').classList.add('hidden');
+                        }
+
+                        function selectSavedAddress(radio) {
+                            selectedAddressType = radio.value;
+                            document.getElementById('addressOptionInput').value = radio.value;
+
+                            // Clear new address fields when selecting saved address
+                            document.getElementById('modalNeighborhood').value = '';
+                            document.getElementById('modalStreet').value = '';
+                            document.getElementById('modalNumber').value = '';
+                            document.getElementById('modalComplement').value = '';
+                        }
+
+                        function goToStep2() {
+                            // Validate address
+                            if (selectedAddressType === 'new') {
+                                const neighborhood = document.getElementById('modalNeighborhood').value.trim();
+                                const street = document.getElementById('modalStreet').value.trim();
+                                const number = document.getElementById('modalNumber').value.trim();
+
+                                if (!neighborhood || !street || !number) {
+                                    alert('Por favor, preencha todos os campos obrigatórios do endereço.');
+                                    return;
+                                }
+
+                                document.getElementById('addressOptionInput').value = 'new';
+                                document.getElementById('streetInput').value = street;
+                                document.getElementById('numberInput').value = number;
+                                document.getElementById('neighborhoodInput').value = neighborhood;
+                                document.getElementById('complementInput').value = document.getElementById('modalComplement').value.trim();
+                            }
+
+                            currentModalStep = 2;
+                            updateModalStep();
+                        }
+
+                        function backToStep1() {
+                            currentModalStep = 1;
+                            updateModalStep();
+                        }
+
+                        function updateModalStep() {
+                            document.getElementById('modalStep').textContent = currentModalStep;
+                            document.getElementById('progressBar').style.width = (currentModalStep * 50) + '%';
+
+                            if (currentModalStep === 1) {
+                                document.getElementById('step1').classList.remove('hidden');
+                                document.getElementById('step2').classList.add('hidden');
+                            } else {
+                                document.getElementById('step1').classList.add('hidden');
+                                document.getElementById('step2').classList.remove('hidden');
+                            }
+                        }
+
+                        function updatePaymentSelection() {
+                            const paymentMethod = document.querySelector('input[name="modal_payment"]:checked')?.value;
+                            const changeField = document.getElementById('changeField');
+
+                            if (paymentMethod === 'cash') {
+                                changeField.classList.remove('hidden');
+                                document.getElementById('modalChange').required = false;
+                            } else {
+                                changeField.classList.add('hidden');
+                                document.getElementById('modalChange').value = '';
+                            }
+                        }
+
+                        function confirmDelivery() {
+                            const paymentMethod = document.querySelector('input[name="modal_payment"]:checked')?.value;
+
+                            if (!paymentMethod) {
+                                alert('Por favor, selecione a forma de pagamento.');
+                                return;
+                            }
+
+                            // Save payment data
+                            document.getElementById('paymentMethodInput').value = paymentMethod;
+                            document.getElementById('changeForInput').value = document.getElementById('modalChange').value || '';
+
+                            // Update delivery method
+                            document.getElementById('deliveryMethodInput').value = 'delivery';
+
+                            // Build summary text
+                            let addressText = '';
+                            if (selectedAddressType === 'new') {
+                                const street = document.getElementById('modalStreet').value;
+                                const number = document.getElementById('modalNumber').value;
+                                const neighborhood = document.getElementById('modalNeighborhood').value;
+                                const complement = document.getElementById('modalComplement').value;
+                                const city = document.getElementById('modalCity').value;
+                                const state = document.getElementById('modalState').value;
+
+                                addressText = `${street}, ${number} - ${neighborhood}, ${city}/${state}`;
+                                if (complement) addressText += ` (${complement})`;
+                            } else {
+                                const selectedRadio = document.querySelector('input[name="modal_address_option"]:checked');
+                                if (selectedRadio) {
+                                    const street = selectedRadio.dataset.street;
+                                    const number = selectedRadio.dataset.number;
+                                    const neighborhood = selectedRadio.dataset.neighborhood;
+                                    const city = selectedRadio.dataset.city;
+                                    const state = selectedRadio.dataset.state;
+                                    const complement = selectedRadio.dataset.complement;
+
+                                    addressText = `${street}, ${number} - ${neighborhood}, ${city}/${state}`;
+                                    if (complement) addressText += ` (${complement})`;
+                                }
+                            }
+
+                            document.getElementById('addressSummaryText').textContent = addressText;
+
+                            // Payment summary
+                            const paymentLabels = {
+                                'pix': '💰 PIX',
+                                'credit_card': '💳 Cartão de Crédito',
+                                'debit_card': '💳 Cartão de Débito',
+                                'cash': '💵 Dinheiro'
+                            };
+                            let paymentText = paymentLabels[paymentMethod] || paymentMethod;
+                            const changeValue = document.getElementById('modalChange').value;
+                            if (paymentMethod === 'cash' && changeValue) {
+                                paymentText += ` - Troco para R$ ${parseFloat(changeValue).toFixed(2).replace('.', ',')}`;
+                            }
+                            document.getElementById('paymentSummaryText').textContent = paymentText;
+
+                            // Show summary and close modal
+                            document.getElementById('deliverySummary').classList.remove('hidden');
+                            closeDeliveryModal();
+
+                            // Check delivery radio
+                            document.querySelector('input[name="delivery_type"][value="delivery"]').checked = true;
                         }
                     </script>
                 </div>
