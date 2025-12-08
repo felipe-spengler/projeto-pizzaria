@@ -71,7 +71,12 @@ CREATE TABLE `products` (
 CREATE TABLE `addresses` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
-  `full_address` text NOT NULL,
+  `street` varchar(255) NOT NULL,
+  `number` varchar(20) NOT NULL,
+  `neighborhood` varchar(100) NOT NULL,
+  `complement` varchar(255) DEFAULT NULL,
+  `city` varchar(100) DEFAULT 'Chopinzinho',
+  `state` char(2) DEFAULT 'PR',
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
@@ -87,6 +92,7 @@ CREATE TABLE `orders` (
   `delivery_method` enum('delivery','pickup') DEFAULT 'delivery',
   `delivery_address` text,
   `notes` text,
+  `change_for` decimal(10,2) DEFAULT NULL,
   `viewed` boolean DEFAULT FALSE,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

@@ -94,15 +94,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     $userId = $_SESSION['user_id'];
     $totalAmount = array_sum(array_column($cart, 'total'));
-    $address = "Endereço do Cliente (Cadastrado)"; // In real app, fetch from user or form input
+
+    // Inputs
+    $deliveryMethod = $_POST['delivery_method'] ?? 'pickup';
+    $paymentMethod = $_POST['payment_method'] ?? 'cash';
     $notes = $_POST['notes'] ?? '';
+    $changeFor = null;
+    $address = '';
+
+    if ($deliveryMethod === 'delivery') {
+        $addressOption = $_POST['address_option'] ?? 'new';
+
+        if ($addressOption === 'new') {
+            // Simple address for now (will be updated with modal later)
+            $address = trim($_POST['delivery_address'] ?? '');
+            if (empty($address)) {
+                $address = "Endereço não informado";
+            }
+        } else {
+            // Existing address ID
+            $addrId = (int) $addressOption;
+            $stmtGet = $db->prepare("SELECT * FROM addresses WHERE id = ? AND user_id = ?");
+            $stmtGet->execute([$addrId, $userId]);
+            $addrRow = $stmtGet->fetch();
+
+            if ($addrRow) {
+                $address = "{$addrRow['street']}, {$addrRow['number']} - {$addrRow['neighborhood']}";
+                if ($addrRow['complement'])
+                    $address .= " ({$addrRow['complement']})";
+                $address .= " - {$addrRow['city']}/{$addrRow['state']}";
+            } else {
+                $address = 'Endereço inválido';
+            }
+        }
+
+        // Change (troco) - only for cash payment
+        if ($paymentMethod === 'cash') {
+            $changeFor = !empty($_POST['change_for']) ? (float) $_POST['change_for'] : null;
+        }
+    } else {
+        $address = "Retirada no Balcão";
+    }
 
     try {
         $db->beginTransaction();
 
         // Insert Order
-        $stmt = $db->prepare("INSERT INTO orders (user_id, status, total_amount, delivery_address, notes) VALUES (?, 'pending', ?, ?, ?)");
-        $stmt->execute([$userId, $totalAmount, $address, $notes]);
+        $stmt = $db->prepare("INSERT INTO orders (user_id, status, total_amount, delivery_address, notes, delivery_method, payment_method, change_for) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$userId, $totalAmount, $address, $notes, $deliveryMethod, $paymentMethod, $changeFor]);
         $orderId = $db->lastInsertId();
 
         // Insert Items
@@ -110,7 +149,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         foreach ($cart as $item) {
             $stmtItem->execute([$orderId, $item['product_id'], $item['quantity'], $item['unit_total'], $item['total']]);
-            // (Skipping order_item_flavors insert for brevity, but logically it should be here)
+            $itemId = $db->lastInsertId();
+
+            // Insert Flavors
+            if (!empty($item['flavors'])) {
+                $stmtFlavor = $db->prepare("INSERT INTO order_item_flavors (order_item_id, flavor_id) VALUES (?, ?)");
+                foreach ($item['flavors'] as $flav) {
+                    $fId = is_array($flav) ? ($flav['id'] ?? null) : $flav;
+                    if ($fId)
+                        $stmtFlavor->execute([$itemId, $fId]);
+                }
+            }
         }
 
         $db->commit();
@@ -140,17 +189,76 @@ if (isset($_SESSION['user_id'])) {
 if (isset($_GET['success'])):
     $orderId = $_GET['success'];
     // Re-fetch order details for the receipt
-    $stmt = $db->prepare("SELECT o.*, u.name, u.phone, u.address FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?");
+    $stmt = $db->prepare("SELECT o.*, u.name as user_name, u.phone FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?");
     $stmt->execute([$orderId]);
     $order = $stmt->fetch();
 
-    // Construct WhatsApp Message
-    $msg = "*NOVO PEDIDO #{$orderId}*\n";
+    // Fetch Items with Product Name
+    $stmt = $db->prepare("SELECT oi.*, p.name as product_name FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?");
+    $stmt->execute([$orderId]);
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Build Complete WhatsApp Message
+    $msg = "*🍕 NOVO PEDIDO #{$orderId}*\n";
+    $msg .= "================================\n";
+    $msg .= "*📅 Data:* " . date('d/m/Y H:i', strtotime($order['created_at'])) . "\n";
+    $msg .= "*👤 Cliente:* {$order['user_name']}\n";
+    if ($order['phone']) {
+        $msg .= "*📱 Telefone:* {$order['phone']}\n";
+    }
+    $msg .= "================================\n\n";
+
+    // Delivery Info
+    $msg .= "*📦 ENTREGA:*\n";
+    if ($order['delivery_method'] == 'delivery') {
+        $msg .= "🏍️ *Delivery*\n";
+        $msg .= "📍 " . $order['delivery_address'] . "\n";
+    } else {
+        $msg .= "🏪 *RETIRADA NO BALCÃO*\n";
+    }
+    $msg .= "\n";
+
+    // Payment Info (only for delivery)
+    if ($order['delivery_method'] == 'delivery') {
+        $msg .= "*💳 PAGAMENTO:*\n";
+        $paymentLabels = [
+            'pix' => '💰 PIX',
+            'credit_card' => '💳 Cartão de Crédito',
+            'debit_card' => '💳 Cartão de Débito',
+            'cash' => '💵 Dinheiro'
+        ];
+        $msg .= ($paymentLabels[$order['payment_method']] ?? ucfirst($order['payment_method'])) . "\n\n";
+    }
+
+    // Items
+    $msg .= "*🛒 ITENS DO PEDIDO:*\n";
     $msg .= "--------------------------------\n";
-    $msg .= "*Cliente:* {$order['name']}\n";
-    $msg .= "*Total:* R$ " . number_format($order['total_amount'], 2, ',', '.') . "\n";
-    $msg .= "--------------------------------\n";
-    $msg .= "Gostaria de confirmar meu pedido!";
+    foreach ($items as $item) {
+        $msg .= "• *{$item['quantity']}x {$item['product_name']}*\n";
+
+        // Fetch Flavors
+        $stmtF = $db->prepare("SELECT f.name FROM order_item_flavors oif JOIN flavors f ON oif.flavor_id = f.id WHERE oif.order_item_id = ?");
+        $stmtF->execute([$item['id']]);
+        $flavors = $stmtF->fetchAll(PDO::FETCH_COLUMN);
+
+        if ($flavors) {
+            $msg .= "  _(" . implode(', ', $flavors) . ")_\n";
+        }
+        $msg .= "  R$ " . number_format($item['subtotal'], 2, ',', '.') . "\n\n";
+    }
+
+    // Notes
+    if ($order['notes']) {
+        $msg .= "--------------------------------\n";
+        $msg .= "*📝 OBSERVAÇÕES:*\n";
+        $msg .= $order['notes'] . "\n";
+    }
+
+    // Total
+    $msg .= "================================\n";
+    $msg .= "*💰 TOTAL: R$ " . number_format($order['total_amount'], 2, ',', '.') . "*\n";
+    $msg .= "================================\n\n";
+    $msg .= "Gostaria de confirmar meu pedido! 😋";
 
     $waLink = "https://wa.me/5549999459490?text=" . urlencode($msg);
     ?>
