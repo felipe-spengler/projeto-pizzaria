@@ -224,103 +224,228 @@ if (isset($_GET['success'])):
 
                     <!-- Checkout Summary -->
                     <div class="w-full lg:w-96">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
-                            <h2 class="font-display font-bold text-xl text-gray-900 mb-6">Resumo</h2>
-                            <div class="flex justify-between font-bold text-xl text-gray-900 mb-6 border-t pt-4">
-                                <span>Total</span>
-                                <span>R$ <?= number_format($total, 2, ',', '.') ?></span>
+                        <div
+                            class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 overflow-hidden sticky top-24">
+                            <!-- Header -->
+                            <div class="bg-gradient-to-r from-brand-600 to-orange-600 p-6 text-white">
+                                <h2 class="font-display font-bold text-2xl mb-2">Finalizar Pedido</h2>
+                                <p class="text-brand-100 text-sm">Complete as informações abaixo</p>
                             </div>
 
-                            <form action="cart.php" method="POST" id="checkoutForm">
-                                <input type="hidden" name="action" value="checkout">
-                                
-                                <!-- Delivery Method -->
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Forma de Entrega</label>
-                                    <div class="flex gap-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="radio" name="delivery_method" value="delivery" checked class="text-brand-600 focus:ring-brand-500" onclick="toggleAddress(true)">
-                                            <span class="ml-2 text-sm text-gray-900">Entrega</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="radio" name="delivery_method" value="pickup" class="text-brand-600 focus:ring-brand-500" onclick="toggleAddress(false)">
-                                            <span class="ml-2 text-sm text-gray-900">Retirada</span>
-                                        </label>
+                            <div class="p-6">
+                                <!-- Total Display -->
+                                <div class="bg-white rounded-xl p-4 mb-6 border-2 border-brand-100 shadow-sm">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600 font-medium">Total do Pedido</span>
+                                        <span class="font-display font-bold text-2xl text-brand-600">R$
+                                            <?= number_format($total, 2, ',', '.') ?></span>
                                     </div>
                                 </div>
 
-                                <!-- Address Selection -->
-                                <div id="addressSection" class="mb-6">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Endereço de Entrega</label>
-                                    
-                                    <?php if (!empty($userAddresses)): ?>
-                                        <div class="space-y-2 mb-3 max-h-40 overflow-y-auto custom-scrollbar">
-                                            <?php foreach ($userAddresses as $addr): ?>
-                                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                                <input type="radio" name="address_option" value="<?= $addr['id'] ?>" class="mt-1 text-brand-600 focus:ring-brand-500" onclick="toggleNewAddress(false)">
-                                                <div class="ml-2">
-                                                    <span class="block text-sm text-gray-800 break-words"><?= htmlspecialchars($addr['full_address']) ?></span>
+                                <form action="cart.php" method="POST" id="checkoutForm">
+                                    <input type="hidden" name="action" value="checkout">
+
+                                    <!-- Step 1: Delivery Method -->
+                                    <div class="mb-6">
+                                        <div class="flex items-center gap-2 mb-4">
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm">
+                                                1</div>
+                                            <h3 class="font-bold text-gray-900 text-lg">Como você prefere?</h3>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <!-- Pickup Option (Default) -->
+                                            <label class="relative cursor-pointer group">
+                                                <input type="radio" name="delivery_method" value="pickup" checked
+                                                    class="peer sr-only" onchange="updateCheckoutFlow()">
+                                                <div
+                                                    class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                                    <i
+                                                        class="fas fa-store text-3xl text-gray-400 peer-checked:text-brand-600 mb-2 block group-hover:scale-110 transition-transform"></i>
+                                                    <span
+                                                        class="font-bold text-gray-700 peer-checked:text-brand-600 block text-sm">Retirar</span>
+                                                    <span class="text-xs text-gray-500 block mt-1">No balcão</span>
+                                                </div>
+                                                <div
+                                                    class="absolute -top-2 -right-2 w-6 h-6 bg-brand-600 rounded-full items-center justify-center text-white text-xs hidden peer-checked:flex">
+                                                    <i class="fas fa-check"></i>
                                                 </div>
                                             </label>
-                                            <?php endforeach; ?>
-                                            <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                                <input type="radio" name="address_option" value="new" class="text-brand-600 focus:ring-brand-500" onclick="toggleNewAddress(true)" checked>
-                                                <span class="ml-2 text-sm font-medium text-brand-600">Usar outro endereço</span>
+
+                                            <!-- Delivery Option -->
+                                            <label class="relative cursor-pointer group">
+                                                <input type="radio" name="delivery_method" value="delivery" class="peer sr-only"
+                                                    onchange="updateCheckoutFlow()">
+                                                <div
+                                                    class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                                    <i
+                                                        class="fas fa-motorcycle text-3xl text-gray-400 peer-checked:text-brand-600 mb-2 block group-hover:scale-110 transition-transform"></i>
+                                                    <span
+                                                        class="font-bold text-gray-700 peer-checked:text-brand-600 block text-sm">Entrega</span>
+                                                    <span class="text-xs text-gray-500 block mt-1">Em casa</span>
+                                                </div>
+                                                <div
+                                                    class="absolute -top-2 -right-2 w-6 h-6 bg-brand-600 rounded-full items-center justify-center text-white text-xs hidden peer-checked:flex">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
                                             </label>
                                         </div>
+                                    </div>
+
+                                    <!-- Step 2: Address & Payment (Only for Delivery) -->
+                                    <div id="deliveryOnlySection" class="hidden">
+                                        <!-- Address -->
+                                        <div class="mb-6">
+                                            <div class="flex items-center gap-2 mb-4">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm">
+                                                    2</div>
+                                                <h3 class="font-bold text-gray-900 text-lg">Endereço de Entrega</h3>
+                                            </div>
+
+                                            <?php if (!empty($userAddresses)): ?>
+                                                <div class="space-y-2 mb-3">
+                                                    <?php foreach ($userAddresses as $addr): ?>
+                                                        <label class="relative cursor-pointer">
+                                                            <input type="radio" name="address_option" value="<?= $addr['id'] ?>"
+                                                                class="peer sr-only">
+                                                            <div
+                                                                class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300">
+                                                                <div class="flex items-start gap-3">
+                                                                    <i class="fas fa-map-marker-alt text-brand-600 mt-1"></i>
+                                                                    <span
+                                                                        class="text-sm text-gray-800 flex-grow"><?= htmlspecialchars($addr['full_address']) ?></span>
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                class="absolute top-3 right-3 w-5 h-5 bg-brand-600 rounded-full items-center justify-center text-white text-xs hidden peer-checked:flex">
+                                                                <i class="fas fa-check"></i>
+                                                            </div>
+                                                        </label>
+                                                    <?php endforeach; ?>
+
+                                                    <label class="relative cursor-pointer">
+                                                        <input type="radio" name="address_option" value="new" checked
+                                                            class="peer sr-only"
+                                                            onclick="document.getElementById('newAddressField').classList.remove('hidden')">
+                                                        <div
+                                                            class="p-3 rounded-lg border-2 border-dashed border-brand-300 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-400">
+                                                            <div class="flex items-center gap-3">
+                                                                <i class="fas fa-plus-circle text-brand-600"></i>
+                                                                <span class="text-sm font-semibold text-brand-600">Usar outro
+                                                                    endereço</span>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            <?php else: ?>
+                                                <input type="hidden" name="address_option" value="new">
+                                            <?php endif; ?>
+
+                                            <div id="newAddressField" class="mt-3">
+                                                <textarea name="delivery_address" rows="3"
+                                                    class="w-full border-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 p-3 transition-all"
+                                                    placeholder="Rua, Número, Bairro, Complemento..."></textarea>
+                                            </div>
+                                        </div>
+
+                                        <!-- Payment Method -->
+                                        <div class="mb-6">
+                                            <div class="flex items-center gap-2 mb-4">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm">
+                                                    3</div>
+                                                <h3 class="font-bold text-gray-900 text-lg">Forma de Pagamento</h3>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <label class="relative cursor-pointer">
+                                                    <input type="radio" name="payment_method" value="pix" checked
+                                                        class="peer sr-only">
+                                                    <div
+                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                                        <i class="fas fa-qrcode text-xl text-brand-600 mb-1 block"></i>
+                                                        <span class="text-xs font-bold text-gray-700 block">PIX</span>
+                                                    </div>
+                                                </label>
+                                                <label class="relative cursor-pointer">
+                                                    <input type="radio" name="payment_method" value="credit_card"
+                                                        class="peer sr-only">
+                                                    <div
+                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                                        <i class="fas fa-credit-card text-xl text-brand-600 mb-1 block"></i>
+                                                        <span class="text-xs font-bold text-gray-700 block">Crédito</span>
+                                                    </div>
+                                                </label>
+                                                <label class="relative cursor-pointer">
+                                                    <input type="radio" name="payment_method" value="debit_card"
+                                                        class="peer sr-only">
+                                                    <div
+                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                                        <i class="fas fa-credit-card text-xl text-brand-600 mb-1 block"></i>
+                                                        <span class="text-xs font-bold text-gray-700 block">Débito</span>
+                                                    </div>
+                                                </label>
+                                                <label class="relative cursor-pointer">
+                                                    <input type="radio" name="payment_method" value="cash" class="peer sr-only">
+                                                    <div
+                                                        class="p-3 rounded-lg border-2 border-gray-200 peer-checked:border-brand-600 peer-checked:bg-brand-50 transition-all hover:border-brand-300 text-center">
+                                                        <i class="fas fa-money-bill-wave text-xl text-brand-600 mb-1 block"></i>
+                                                        <span class="text-xs font-bold text-gray-700 block">Dinheiro</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Observations (Always visible) -->
+                                    <div class="mb-6">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                            <i class="fas fa-comment-dots text-brand-600 mr-1"></i>
+                                            Observações (opcional)
+                                        </label>
+                                        <textarea name="notes" rows="3"
+                                            class="w-full border-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 p-3 transition-all"
+                                            placeholder="Ex: Troco para R$ 50, sem cebola, etc..."></textarea>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <?php if (isset($_SESSION['user_id'])): ?>
+                                        <button type="submit"
+                                            class="w-full bg-gradient-to-r from-brand-600 to-orange-600 hover:from-brand-500 hover:to-orange-500 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl mb-3 flex items-center justify-center gap-2">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Confirmar Pedido</span>
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
                                     <?php else: ?>
-                                        <input type="hidden" name="address_option" value="new">
+                                        <a href="login.php"
+                                            class="block w-full text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 rounded-xl transition-all mb-3">
+                                            <i class="fas fa-sign-in-alt mr-2"></i>
+                                            Faça Login para Continuar
+                                        </a>
                                     <?php endif; ?>
 
-                                    <div id="newAddressField">
-                                        <textarea name="delivery_address" rows="3" class="w-full border-gray-300 rounded-lg text-sm focus:ring-brand-500 focus:border-brand-500" placeholder="Rua X, Número 123, Bairro Centro..."></textarea>
-                                    </div>
-                                </div>
-
-                                <!-- Payment Method -->
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Forma de Pagamento</label>
-                                    <select name="payment_method" class="w-full border-gray-300 rounded-lg text-sm focus:ring-brand-500 focus:border-brand-500">
-                                        <option value="pix">PIX</option>
-                                        <option value="credit_card">Cartão de Crédito</option>
-                                        <option value="debit_card">Cartão de Débito</option>
-                                        <option value="cash">Dinheiro</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-6">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-                                    <textarea name="notes" rows="2" class="w-full border-gray-300 rounded-lg text-sm focus:ring-brand-500 focus:border-brand-500" placeholder="Ex: Troco para 50, sem cebola..."></textarea>
-                                </div>
-
-                                <?php if (isset($_SESSION['user_id'])): ?>
-                                    <button type="submit" class="w-full btn-primary py-3 mb-3">Finalizar Pedido</button>
-                                <?php else: ?>
-                                    <a href="login.php"
-                                        class="block w-full text-center bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300 mb-3">Faça
-                                        Login para Finalizar</a>
-                                <?php endif; ?>
-
-                                <a href="menu.php"
-                                    class="block w-full text-center border-2 border-brand-100 text-brand-600 font-bold py-3 rounded-xl hover:bg-brand-50 transition-colors">
-                                    Continuar Comprando
-                                </a>
-                            </form>
-                            <script>
-                            function toggleAddress(isDelivery) {
-                                const el = document.getElementById('addressSection');
-                                if (isDelivery) el.classList.remove('hidden');
-                                else el.classList.add('hidden');
-                            }
-                        
-                            function toggleNewAddress(show) {
-                                const el = document.getElementById('newAddressField');
-                                if (show) el.classList.remove('hidden');
-                                else el.classList.add('hidden');
-                            }
-                            </script>
+                                    <a href="menu.php"
+                                        class="block w-full text-center border-2 border-brand-200 text-brand-600 hover:bg-brand-50 font-semibold py-3 rounded-xl transition-all">
+                                        <i class="fas fa-arrow-left mr-2"></i>
+                                        Continuar Comprando
+                                    </a>
+                                </form>
+                            </div>
                         </div>
                     </div>
+
+                    <script>
+                        function updateCheckoutFlow() {
+                            const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked').value;
+                            const deliverySection = document.getElementById('deliveryOnlySection');
+
+                            if (deliveryMethod === 'delivery') {
+                                deliverySection.classList.remove('hidden');
+                            } else {
+                                deliverySection.classList.add('hidden');
+                            }
+                        }
+                    </script>
                 </div>
             <?php endif; ?>
         </div>
