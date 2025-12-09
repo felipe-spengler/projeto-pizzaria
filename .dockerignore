@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README.md
+GOOGLE_LOGIN*.md
+ATUALIZAR_BANCO.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Credentials (não devem estar no container)
+google-credentials.json
+client_secret_*.json
+
+# Node modules (se houver)
+node_modules/
+npm-debug.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Docker files (não precisa copiar para dentro)
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Database dumps (não precisa no container de produção)
+*.sql
+database.sql
+
+# Build artifacts
+dist/
+build/

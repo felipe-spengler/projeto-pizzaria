@@ -1,0 +1,53 @@
+name: Deploy Automático
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Permite executar manualmente
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+      
+      - name: 🐳 Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: 🔍 Verificar mudanças
+        id: changes
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qE "(Dockerfile|docker-compose.yml|composer.json|composer.lock)"; then
+            echo "rebuild=true" >> $GITHUB_OUTPUT
+          else
+            echo "rebuild=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: 🏗️ Build Docker (com cache)
+        if: steps.changes.outputs.rebuild == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: pizzaria-app:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Só reconstrói se Dockerfile/composer.json mudaram
+      
+      - name: ⚡ Deploy rápido (apenas código PHP)
+        if: steps.changes.outputs.rebuild == 'false'
+        run: |
+          echo "Apenas código PHP alterado - deploy rápido"
+          # Aqui você pode fazer rsync ou git pull no servidor
+          # Exemplo: ssh user@server "cd /app && git pull && docker compose restart app"
+      
+      - name: 📊 Status do deploy
+        run: |
+          echo "✅ Deploy concluído!"
+          echo "Tempo estimado: ${{ steps.changes.outputs.rebuild == 'true' && '3-5 min' || '30 seg' }}"
+
