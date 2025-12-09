@@ -1,0 +1,24 @@
+# Vendor directory
+vendor/
+
+# Environment variables (NUNCA commite este arquivo!)
+.env
+
+# Google OAuth credentials (NUNCA commite!)
+google-credentials.json
+client_secret_*.json
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
