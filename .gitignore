@@ -5,8 +5,8 @@ vendor/
 .env
 
 # Google OAuth credentials (NUNCA commite!)
-# google-credentials.json
-# client_secret_*.json
+ google-credentials.json
+ client_secret_*.json
 
 # IDE files
 .vscode/

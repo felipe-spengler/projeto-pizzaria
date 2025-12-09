@@ -14,19 +14,22 @@ class GoogleAuth
     {
         $this->client = new GoogleClient();
 
-        // Try to load from JSON file first (EASIER!)
+        // Try to load from JSON file first
         $jsonPath = __DIR__ . '/../../google-credentials.json';
 
         if (file_exists($jsonPath)) {
-            // Load from JSON file - MUCH EASIER!
+            // Load from JSON file
             $this->client->setAuthConfig($jsonPath);
             $this->client->setRedirectUri($this->getRedirectUri());
         } else {
-            // Fallback to environment variables
-            $this->loadEnv();
-            $this->client->setClientId($_ENV['GOOGLE_CLIENT_ID'] ?? '');
-            $this->client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET'] ?? '');
-            $this->redirectUri = $_ENV['GOOGLE_REDIRECT_URI'] ?? '';
+            // Use environment variables from Docker/EasyPanel
+            $clientId = getenv('GOOGLE_CLIENT_ID') ?: ($_ENV['GOOGLE_CLIENT_ID'] ?? '');
+            $clientSecret = getenv('GOOGLE_CLIENT_SECRET') ?: ($_ENV['GOOGLE_CLIENT_SECRET'] ?? '');
+            $redirectUri = getenv('GOOGLE_REDIRECT_URI') ?: ($_ENV['GOOGLE_REDIRECT_URI'] ?? '');
+
+            $this->client->setClientId($clientId);
+            $this->client->setClientSecret($clientSecret);
+            $this->redirectUri = $redirectUri;
             $this->client->setRedirectUri($this->redirectUri);
         }
 
@@ -131,8 +134,12 @@ class GoogleAuth
             return true;
         }
 
-        return !empty($_ENV['GOOGLE_CLIENT_ID']) &&
-            !empty($_ENV['GOOGLE_CLIENT_SECRET']) &&
-            !empty($_ENV['GOOGLE_REDIRECT_URI']);
+        // Check environment variables from Docker/EasyPanel
+        $clientId = getenv('GOOGLE_CLIENT_ID') ?: ($_ENV['GOOGLE_CLIENT_ID'] ?? '');
+        $clientSecret = getenv('GOOGLE_CLIENT_SECRET') ?: ($_ENV['GOOGLE_CLIENT_SECRET'] ?? '');
+        $redirectUri = getenv('GOOGLE_REDIRECT_URI') ?: ($_ENV['GOOGLE_REDIRECT_URI'] ?? '');
+
+        return !empty($clientId) && !empty($clientSecret) && !empty($redirectUri);
+    }
     }
 }
