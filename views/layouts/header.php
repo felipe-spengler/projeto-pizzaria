@@ -54,8 +54,11 @@
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="menu.php"
                         class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Cardápio</a>
-                    <a href="orders.php" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Meus
-                        Pedidos</a>
+
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <a href="orders.php" class="text-gray-600 hover:text-brand-600 font-medium transition-colors">Meus
+                            Pedidos</a>
+                    <?php endif; ?>
 
                     <div class="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
                         <?php if (isset($_SESSION['user_id'])): ?>
