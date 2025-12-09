@@ -42,12 +42,24 @@ class GoogleAuth
      */
     private function getRedirectUri(): string
     {
-        // Detect if we're on localhost or production
+        // Use environment variable if set (recommended for production)
+        $envRedirectUri = getenv('GOOGLE_REDIRECT_URI') ?: ($_ENV['GOOGLE_REDIRECT_URI'] ?? '');
+        if (!empty($envRedirectUri)) {
+            return $envRedirectUri;
+        }
+
+        // Auto-detect for local development
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-        // Build the callback URL
-        return $protocol . "://" . $host . "/projeto-pizzaria/public/google-callback.php";
+        // Check if running locally or in production
+        if (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false) {
+            // Local development
+            return $protocol . "://" . $host . "/projeto-pizzaria/public/google-callback.php";
+        } else {
+            // Production (EasyPanel/Docker)
+            return $protocol . "://" . $host . "/google-callback.php";
+        }
     }
 
     /**
