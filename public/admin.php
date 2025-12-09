@@ -182,13 +182,13 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                                             <i class="fas fa-play"></i> Preparar
                                         </button>
                                     <?php elseif ($order['status'] === 'preparing'): ?>
-                                        <button type="submit" name="status" value="delivery"
+                                        <button type="submit" name="status" value="out_for_delivery"
                                             class="text-orange-600 hover:text-orange-800 font-medium text-sm mr-2"
                                             title="Despachar">
                                             <i class="fas fa-motorcycle"></i> Despachar
                                         </button>
-                                    <?php elseif ($order['status'] === 'delivery'): ?>
-                                        <button type="submit" name="status" value="completed"
+                                    <?php elseif ($order['status'] === 'out_for_delivery'): ?>
+                                        <button type="submit" name="status" value="delivered"
                                             class="text-green-600 hover:text-green-800 font-medium text-sm mr-2" title="Concluir">
                                             <i class="fas fa-check"></i> Concluir
                                         </button>
