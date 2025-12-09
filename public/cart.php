@@ -5,6 +5,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Config\Database;
 
 $db = Database::getInstance()->getConnection();
+$errors = [];
+$guestName = trim($_POST['guest_name'] ?? '');
+$guestPhone = trim($_POST['guest_phone'] ?? '');
+$isLoggedIn = isset($_SESSION['user_id']);
 
 // --- Action Handlers ---
 
@@ -79,103 +83,114 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// LOGIN REQUIRED - Redirect to login if not authenticated
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php?redirect=cart.php');
-    exit;
-}
-
 // 3. Checkout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'checkout') {
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: login.php');
-        exit;
-    }
-
     $cart = $_SESSION['cart'] ?? [];
     if (empty($cart)) {
-        header('Location: cart.php');
-        exit;
+        $errors[] = 'Seu carrinho está vazio.';
     }
 
-    $userId = $_SESSION['user_id'];
-    $totalAmount = array_sum(array_column($cart, 'total'));
+    if (!$isLoggedIn && empty($guestName)) {
+        $errors[] = 'Informe seu nome para continuar sem login.';
+    }
 
-    // Inputs
-    $deliveryMethod = $_POST['delivery_method'] ?? 'pickup';
-    $paymentMethod = $_POST['payment_method'] ?? 'cash';
-    $notes = $_POST['notes'] ?? '';
-    $changeFor = null;
-    $address = '';
-
-    if ($deliveryMethod === 'delivery') {
-        $addressOption = $_POST['address_option'] ?? 'new';
-
-        if ($addressOption === 'new') {
-            // Simple address for now (will be updated with modal later)
-            $address = trim($_POST['delivery_address'] ?? '');
-            if (empty($address)) {
-                $address = "Endereço não informado";
-            }
+    // Identify user (creates um "guest" vinculado à sessão)
+    if (empty($errors)) {
+        if ($isLoggedIn) {
+            $userId = $_SESSION['user_id'];
         } else {
-            // Existing address ID
-            $addrId = (int) $addressOption;
-            $stmtGet = $db->prepare("SELECT * FROM addresses WHERE id = ? AND user_id = ?");
-            $stmtGet->execute([$addrId, $userId]);
-            $addrRow = $stmtGet->fetch();
-
-            if ($addrRow) {
-                $address = "{$addrRow['street']}, {$addrRow['number']} - {$addrRow['neighborhood']}";
-                if ($addrRow['complement'])
-                    $address .= " ({$addrRow['complement']})";
-                $address .= " - {$addrRow['city']}/{$addrRow['state']}";
+            if (!isset($_SESSION['guest_user_id'])) {
+                $generatedEmail = 'guest+' . session_id() . '-' . time() . '@pedido.local';
+                $stmtUser = $db->prepare("INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, NULL, 'customer')");
+                $stmtUser->execute([$guestName, $generatedEmail, $guestPhone]);
+                $_SESSION['guest_user_id'] = $db->lastInsertId();
+                $_SESSION['guest_user_name'] = $guestName;
             } else {
-                $address = 'Endereço inválido';
+                // Atualiza nome/telefone do convidado caso tenha sido preenchido agora
+                $stmtUser = $db->prepare("UPDATE users SET name = ?, phone = ? WHERE id = ?");
+                $stmtUser->execute([$guestName, $guestPhone, $_SESSION['guest_user_id']]);
             }
+            $userId = $_SESSION['guest_user_id'];
         }
 
-        // Change (troco) - only for cash payment
-        if ($paymentMethod === 'cash') {
-            $changeFor = !empty($_POST['change_for']) ? (float) $_POST['change_for'] : null;
-        }
-    } else {
-        $address = "Retirada no Balcão";
-    }
+        $totalAmount = array_sum(array_column($cart, 'total'));
 
-    try {
-        $db->beginTransaction();
+        // Inputs
+        $deliveryMethod = $_POST['delivery_method'] ?? 'pickup';
+        $paymentMethod = $_POST['payment_method'] ?? 'cash';
+        $notes = $_POST['notes'] ?? '';
+        $changeFor = null;
+        $address = '';
 
-        // Insert Order
-        $stmt = $db->prepare("INSERT INTO orders (user_id, status, total_amount, delivery_address, notes, delivery_method, payment_method, change_for) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$userId, $totalAmount, $address, $notes, $deliveryMethod, $paymentMethod, $changeFor]);
-        $orderId = $db->lastInsertId();
+        if ($deliveryMethod === 'delivery') {
+            $addressOption = $_POST['address_option'] ?? 'new';
 
-        // Insert Items
-        $stmtItem = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?)");
+            if ($addressOption === 'new') {
+                // Simple address for now (will be updated with modal later)
+                $address = trim($_POST['delivery_address'] ?? '');
+                if (empty($address)) {
+                    $address = "Endereço não informado";
+                }
+            } else {
+                // Existing address ID
+                $addrId = (int) $addressOption;
+                $stmtGet = $db->prepare("SELECT * FROM addresses WHERE id = ? AND user_id = ?");
+                $stmtGet->execute([$addrId, $userId]);
+                $addrRow = $stmtGet->fetch();
 
-        foreach ($cart as $item) {
-            $stmtItem->execute([$orderId, $item['product_id'], $item['quantity'], $item['unit_total'], $item['total']]);
-            $itemId = $db->lastInsertId();
-
-            // Insert Flavors
-            if (!empty($item['flavors'])) {
-                $stmtFlavor = $db->prepare("INSERT INTO order_item_flavors (order_item_id, flavor_id) VALUES (?, ?)");
-                foreach ($item['flavors'] as $flav) {
-                    $fId = is_array($flav) ? ($flav['id'] ?? null) : $flav;
-                    if ($fId)
-                        $stmtFlavor->execute([$itemId, $fId]);
+                if ($addrRow) {
+                    $address = "{$addrRow['street']}, {$addrRow['number']} - {$addrRow['neighborhood']}";
+                    if ($addrRow['complement'])
+                        $address .= " ({$addrRow['complement']})";
+                    $address .= " - {$addrRow['city']}/{$addrRow['state']}";
+                } else {
+                    $address = 'Endereço inválido';
                 }
             }
+
+            // Change (troco) - only for cash payment
+            if ($paymentMethod === 'cash') {
+                $changeFor = !empty($_POST['change_for']) ? (float) $_POST['change_for'] : null;
+            }
+        } else {
+            $address = "Retirada no Balcão";
         }
 
-        $db->commit();
-        unset($_SESSION['cart']);
-        header("Location: cart.php?success=$orderId");
-        exit;
+        try {
+            $db->beginTransaction();
 
-    } catch (Exception $e) {
-        $db->rollBack();
-        die("Erro ao processar pedido: " . $e->getMessage());
+            // Insert Order
+            $stmt = $db->prepare("INSERT INTO orders (user_id, status, total_amount, delivery_address, notes, delivery_method, payment_method, change_for) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$userId, $totalAmount, $address, $notes, $deliveryMethod, $paymentMethod, $changeFor]);
+            $orderId = $db->lastInsertId();
+
+            // Insert Items
+            $stmtItem = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?)");
+
+            foreach ($cart as $item) {
+                $stmtItem->execute([$orderId, $item['product_id'], $item['quantity'], $item['unit_total'], $item['total']]);
+                $itemId = $db->lastInsertId();
+
+                // Insert Flavors
+                if (!empty($item['flavors'])) {
+                    $stmtFlavor = $db->prepare("INSERT INTO order_item_flavors (order_item_id, flavor_id) VALUES (?, ?)");
+                    foreach ($item['flavors'] as $flav) {
+                        $fId = is_array($flav) ? ($flav['id'] ?? null) : $flav;
+                        if ($fId)
+                            $stmtFlavor->execute([$itemId, $fId]);
+                    }
+                }
+            }
+
+            $db->commit();
+            unset($_SESSION['cart']);
+            header("Location: cart.php?success=$orderId");
+            exit;
+
+        } catch (Exception $e) {
+            $db->rollBack();
+            $errors[] = "Erro ao processar pedido: " . $e->getMessage();
+        }
     }
 }
 
@@ -298,6 +313,16 @@ if (isset($_GET['success'])):
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 class="font-display font-bold text-3xl text-gray-900 mb-8">Seu Carrinho</h1>
 
+            <?php if (!empty($errors)): ?>
+                <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
+                    <ul class="list-disc list-inside space-y-1">
+                        <?php foreach ($errors as $err): ?>
+                            <li><?= htmlspecialchars($err) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
             <?php if (empty($_SESSION['cart'])): ?>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
                     <i class="fas fa-shopping-basket text-4xl text-gray-300 mb-4"></i>
@@ -373,6 +398,37 @@ if (isset($_GET['success'])):
                                     <input type="hidden" name="complement" id="complementInput" value="">
                                     <input type="hidden" name="payment_method" id="paymentMethodInput" value="">
                                     <input type="hidden" name="change_for" id="changeForInput" value="">
+
+                                    <?php if (!$isLoggedIn): ?>
+                                        <div class="mb-6 bg-brand-50 border border-brand-200 rounded-xl p-4">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-600 text-white text-xs font-bold">0</span>
+                                                    <h3 class="font-bold text-gray-900 text-base">Continuar sem login</h3>
+                                                </div>
+                                                <a class="text-sm font-semibold text-brand-600 hover:text-brand-700" href="login.php?redirect=cart.php">Preferir fazer login</a>
+                                            </div>
+                                            <div class="space-y-3">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome completo *</label>
+                                                    <input type="text" name="guest_name" value="<?= htmlspecialchars($guestName) ?>" required
+                                                        class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                        placeholder="Ex: João da Silva">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telefone (opcional)</label>
+                                                    <input type="text" name="guest_phone" value="<?= htmlspecialchars($guestPhone) ?>"
+                                                        class="w-full border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                        placeholder="(XX) XXXXX-XXXX">
+                                                </div>
+                                                <p class="text-xs text-gray-600">Usaremos seus dados apenas para identificar o pedido.</p>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+                                            <p class="text-sm text-green-800"><i class="fas fa-user-check mr-2"></i>Você está logado. Pedido será vinculado à sua conta.</p>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <!-- Step 1: Delivery Method -->
                                     <div class="mb-6">
@@ -458,20 +514,12 @@ if (isset($_GET['success'])):
                                     </div>
 
                                     <!-- Submit Button -->
-                                    <?php if (isset($_SESSION['user_id'])): ?>
-                                        <button type="submit" id="submitBtn"
-                                            class="w-full bg-gradient-to-r from-brand-600 to-orange-600 hover:from-brand-500 hover:to-orange-500 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl mb-3 flex items-center justify-center gap-2">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Confirmar Pedido</span>
-                                            <i class="fas fa-arrow-right"></i>
-                                        </button>
-                                    <?php else: ?>
-                                        <a href="login.php"
-                                            class="block w-full text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 rounded-xl transition-all mb-3">
-                                            <i class="fas fa-sign-in-alt mr-2"></i>
-                                            Faça Login para Continuar
-                                        </a>
-                                    <?php endif; ?>
+                                    <button type="submit" id="submitBtn"
+                                        class="w-full bg-gradient-to-r from-brand-600 to-orange-600 hover:from-brand-500 hover:to-orange-500 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl mb-3 flex items-center justify-center gap-2">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span><?= $isLoggedIn ? 'Confirmar Pedido' : 'Confirmar pedido sem login' ?></span>
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
 
                                     <a href="menu.php"
                                         class="block w-full text-center border-2 border-brand-200 text-brand-600 hover:bg-brand-50 font-semibold py-3 rounded-xl transition-all">

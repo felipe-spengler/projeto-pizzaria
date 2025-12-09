@@ -83,7 +83,19 @@ include __DIR__ . '/../views/layouts/header.php';
                         <div class="p-5 flex flex-col flex-grow">
                             <h3 class="font-display font-bold text-lg text-gray-900 mb-1 leading-tight"><?= $product['name'] ?>
                             </h3>
-                            <p class="text-gray-500 text-sm mb-4 line-clamp-2 min-h-[2.5rem]"><?= $product['description'] ?></p>
+                            <?php
+                            $ingredients = array_filter(array_map('trim', preg_split('/[,;]+/', $product['description'] ?? '')));
+                            ?>
+                            <?php if (!empty($ingredients)): ?>
+                                <div class="flex flex-wrap gap-2 mb-3 max-h-24 overflow-y-auto">
+                                    <?php foreach ($ingredients as $ingredient): ?>
+                                        <span class="px-2 py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg border border-brand-100">
+                                            <?= htmlspecialchars($ingredient) ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                            <p class="text-gray-500 text-sm mb-4"><?= $product['description'] ?></p>
 
                             <div class="mt-auto flex items-center justify-between">
                                 <span class="text-xl font-bold text-brand-600">R$

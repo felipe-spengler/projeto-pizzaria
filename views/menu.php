@@ -77,6 +77,18 @@ include __DIR__ . '/layouts/header.php';
                                     R$ <?= number_format($product['price'], 2, ',', '.') ?>
                                 </span>
                             </div>
+                            <?php
+                            $ingredients = array_filter(array_map('trim', preg_split('/[,;]+/', $product['description'] ?? '')));
+                            ?>
+                            <?php if (!empty($ingredients)): ?>
+                                <div class="flex flex-wrap gap-2 mb-4 max-h-24 overflow-y-auto">
+                                    <?php foreach ($ingredients as $ingredient): ?>
+                                        <span class="px-2 py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg border border-brand-100">
+                                            <?= htmlspecialchars($ingredient) ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                             <p class="text-gray-500 text-sm mb-6 flex-grow"><?= $product['description'] ?></p>
 
                             <a href="/product?id=<?= $product['id'] ?>"
