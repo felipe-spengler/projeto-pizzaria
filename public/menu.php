@@ -20,29 +20,29 @@ include __DIR__ . '/../views/layouts/header.php';
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-12">
 
     <!-- Category Filter -->
-    <div class="flex flex-wrap justify-center gap-4 mb-12">
+    <div class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 sm:mb-12">
         <a href="menu.php"
-            class="px-6 py-2 rounded-full bg-brand-600 text-white font-semibold shadow-md transition-transform transform hover:-translate-y-1">Todos</a>
+            class="px-4 sm:px-6 py-2 rounded-full bg-brand-600 text-white font-semibold shadow-md transition-transform transform hover:-translate-y-1 text-sm sm:text-base">Todos</a>
         <?php foreach ($categories as $cat): ?>
             <a href="#cat-<?= $cat['id'] ?>"
-                class="px-6 py-2 rounded-full bg-white text-gray-600 hover:bg-brand-50 hover:text-brand-600 font-semibold shadow-sm border border-gray-200 transition-all">
+                class="px-4 sm:px-6 py-2 rounded-full bg-white text-gray-600 hover:bg-brand-50 hover:text-brand-600 font-semibold shadow-sm border border-gray-200 transition-all text-sm sm:text-base">
                 <i class="fas fa-<?= $cat['icon'] ?> mr-2"></i><?= $cat['name'] ?>
             </a>
         <?php endforeach; ?>
     </div>
 
     <?php foreach ($categories as $category): ?>
-        <div id="cat-<?= $category['id'] ?>" class="mb-16 scroll-mt-24">
-            <h2 class="font-display font-bold text-2xl text-gray-900 mb-8 flex items-center gap-3">
+        <div id="cat-<?= $category['id'] ?>" class="mb-8 sm:mb-16 scroll-mt-24">
+            <h2 class="font-display font-bold text-xl sm:text-2xl text-gray-900 mb-4 sm:mb-8 flex items-center gap-3 px-2 sm:px-0">
                 <i class="fas fa-<?= $category['icon'] ?> text-brand-500"></i>
                 <?= $category['name'] ?>
             </h2>
 
             <!-- Grid Layout Fixed -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
                 <?php
                 $catProducts = array_filter($products, function ($p) use ($category) {
                     return $p['category_id'] == $category['id'];
@@ -51,8 +51,9 @@ include __DIR__ . '/../views/layouts/header.php';
                 foreach ($catProducts as $product):
                     ?>
                     <div
-                        class="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
-                        <div class="relative h-48 overflow-hidden bg-gray-100">
+                        class="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col h-full cursor-pointer"
+                        onclick="window.location.href='product.php?id=<?= $product['id'] ?>'">
+                        <a href="product.php?id=<?= $product['id'] ?>" class="relative h-40 sm:h-48 overflow-hidden bg-gray-100 block">
                             <?php
                             $imgUrl = $product['image_url'];
                             if (str_starts_with($imgUrl, 'assets/')) {
@@ -78,31 +79,32 @@ include __DIR__ . '/../views/layouts/header.php';
                                     Montar
                                 </div>
                             <?php endif; ?>
-                        </div>
+                        </a>
 
-                        <div class="p-5 flex flex-col flex-grow">
-                            <h3 class="font-display font-bold text-lg text-gray-900 mb-1 leading-tight"><?= $product['name'] ?>
+                        <div class="p-3 sm:p-5 flex flex-col flex-grow">
+                            <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 mb-1 leading-tight"><?= $product['name'] ?>
                             </h3>
                             <?php
                             $ingredients = array_filter(array_map('trim', preg_split('/[,;]+/', $product['description'] ?? '')));
                             ?>
                             <?php if (!empty($ingredients)): ?>
-                                <div class="flex flex-wrap gap-2 mb-3 max-h-24 overflow-y-auto">
+                                <div class="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3 max-h-20 sm:max-h-24 overflow-y-auto">
                                     <?php foreach ($ingredients as $ingredient): ?>
-                                        <span class="px-2 py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg border border-brand-100">
+                                        <span class="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg border border-brand-100">
                                             <?= htmlspecialchars($ingredient) ?>
                                         </span>
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
-                            <p class="text-gray-500 text-sm mb-4"><?= $product['description'] ?></p>
+                            <p class="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2"><?= $product['description'] ?></p>
 
                             <div class="mt-auto flex items-center justify-between">
-                                <span class="text-xl font-bold text-brand-600">R$
+                                <span class="text-lg sm:text-xl font-bold text-brand-600">R$
                                     <?= number_format($product['price'], 2, ',', '.') ?></span>
                                 <a href="product.php?id=<?= $product['id'] ?>"
-                                    class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center hover:bg-brand-600 hover:text-white transition-colors">
-                                    <i class="fas fa-plus"></i>
+                                    class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center hover:bg-brand-600 hover:text-white transition-all transform hover:scale-110 shadow-sm"
+                                    onclick="event.stopPropagation();">
+                                    <i class="fas fa-plus text-sm sm:text-base"></i>
                                 </a>
                             </div>
                         </div>

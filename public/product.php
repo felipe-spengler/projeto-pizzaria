@@ -89,31 +89,31 @@ if (!empty($comboSteps)) {
 
 <?php include __DIR__ . '/../views/layouts/header.php'; ?>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+<div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 lg:py-12">
+    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         <div class="grid grid-cols-1 lg:grid-cols-2">
             <!-- Image Side -->
-            <div class="h-96 lg:h-auto relative bg-gray-100">
+            <div class="h-64 sm:h-80 lg:h-auto relative bg-gray-100">
                 <?php if ($product['image_url']): ?>
                     <img src="<?= $product['image_url'] ?>" alt="<?= $product['name'] ?>"
                         class="w-full h-full object-cover">
                 <?php else: ?>
                     <div class="flex items-center justify-center h-full text-gray-400">
-                        <i class="fas fa-image text-6xl"></i>
+                        <i class="fas fa-image text-4xl sm:text-6xl"></i>
                     </div>
                 <?php endif; ?>
             </div>
-            <div class="p-8 lg:p-12">
+            <div class="p-4 sm:p-6 lg:p-8 xl:p-12">
                 <a href="menu.php"
-                    class="inline-flex items-center text-gray-500 hover:text-brand-600 mb-6 transition-colors">
+                    class="inline-flex items-center text-gray-500 hover:text-brand-600 mb-4 sm:mb-6 transition-colors text-sm sm:text-base">
                     <i class="fas fa-arrow-left mr-2"></i> Voltar ao cardápio
                 </a>
 
-                <h1 class="font-display font-bold text-4xl text-gray-900 mb-2"><?= $product['name'] ?></h1>
-                <p class="text-2xl text-brand-600 font-bold mb-6">R$
+                <h1 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-2"><?= $product['name'] ?></h1>
+                <p class="text-xl sm:text-2xl text-brand-600 font-bold mb-4 sm:mb-6">R$
                     <?= number_format($product['price'], 2, ',', '.') ?>
                 </p>
-                <p class="text-gray-600 mb-8 leading-relaxed"><?= $product['description'] ?></p>
+                <p class="text-gray-600 mb-4 sm:mb-8 leading-relaxed text-sm sm:text-base"><?= $product['description'] ?></p>
 
                 <form action="cart.php" method="POST" id="addToCartForm">
                     <input type="hidden" name="action" value="add">
@@ -130,39 +130,39 @@ if (!empty($comboSteps)) {
                             }
                         }
                         ?>
-                        <div class="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 step-container"
+                        <div class="mb-4 sm:mb-6 lg:mb-8 p-3 sm:p-4 lg:p-6 bg-gray-50 rounded-xl sm:rounded-2xl border border-gray-100 step-container"
                             data-max="<?= $step['max'] ?>" data-step-index="<?= $index ?>">
-                            <h3 class="font-bold text-gray-900 text-lg mb-4 flex items-center justify-between">
-                                <span>
+                            <h3 class="font-bold text-gray-900 text-base sm:text-lg mb-3 sm:mb-4 flex items-center justify-between flex-wrap gap-2">
+                                <span class="flex items-center">
                                     <span
-                                        class="bg-brand-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs mr-2"><?= $index + 1 ?></span>
-                                    <?= $step['title'] ?>
+                                        class="bg-brand-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs mr-2 flex-shrink-0"><?= $index + 1 ?></span>
+                                    <span class="text-sm sm:text-base"><?= $step['title'] ?></span>
                                 </span>
                                 <span
-                                    class="text-xs font-normal text-gray-500 bg-white px-2 py-1 rounded-lg border border-gray-200">
+                                    class="text-xs font-normal text-gray-500 bg-white px-2 py-1 rounded-lg border border-gray-200 whitespace-nowrap">
                                     Máx: <?= $step['max'] ?>
                                 </span>
                             </h3>
 
-                            <div class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                            <div class="space-y-2 sm:space-y-3 max-h-64 sm:max-h-80 overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                                 <?php foreach ($availableFlavors as $flavor): ?>
                                     <label
-                                        class="flex items-start p-3 rounded-xl border border-gray-200 cursor-pointer hover:border-brand-300 hover:bg-white transition-all select-none bg-white">
+                                        class="flex items-start p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-gray-200 cursor-pointer hover:border-brand-400 hover:bg-white hover:shadow-sm transition-all select-none bg-white">
                                         <input type="checkbox" name="flavors[<?= $index ?>][]" value="<?= $flavor['id'] ?>"
-                                            class="mt-1 w-5 h-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 flavor-checkbox"
+                                            class="mt-0.5 sm:mt-1 w-4 h-4 sm:w-5 sm:h-5 text-brand-600 rounded border-gray-300 focus:ring-2 focus:ring-brand-500 flavor-checkbox flex-shrink-0"
                                             data-step="<?= $index ?>">
-                                        <div class="ml-3 flex-grow">
-                                            <div class="flex justify-between w-full">
-                                                <span class="font-medium text-gray-900 text-sm"><?= $flavor['name'] ?></span>
+                                        <div class="ml-2 sm:ml-3 flex-grow min-w-0">
+                                            <div class="flex justify-between items-start gap-2 flex-wrap">
+                                                <span class="font-medium text-gray-900 text-xs sm:text-sm break-words"><?= $flavor['name'] ?></span>
                                                 <?php if ($flavor['additional_price'] > 0): ?>
                                                     <span
-                                                        class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">+
+                                                        class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">+
                                                         R$
                                                         <?= number_format($flavor['additional_price'], 2, ',', '.') ?></span>
                                                 <?php endif; ?>
                                             </div>
                                             <?php if ($flavor['description']): ?>
-                                                <p class="text-xs text-gray-500 mt-0.5 line-clamp-1"><?= $flavor['description'] ?>
+                                                <p class="text-xs text-gray-600 mt-1 leading-relaxed break-words"><?= htmlspecialchars($flavor['description']) ?>
                                                 </p>
                                             <?php endif; ?>
                                         </div>
@@ -175,25 +175,23 @@ if (!empty($comboSteps)) {
                         </div>
                     <?php endforeach; ?>
 
-                    <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
-                        <!-- Quantity Input ... -->
-                        <!-- Submit Button ... -->
-                        <!-- (Reuse existing HTML for quantity/submit) -->
-                        <div class="w-32">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
-                            <div class="flex items-center border border-gray-300 rounded-xl overflow-hidden">
-                                <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors"
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-100">
+                        <div class="w-full sm:w-32">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Quantidade</label>
+                            <div class="flex items-center border-2 border-gray-300 rounded-xl overflow-hidden bg-white">
+                                <button type="button" class="px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 font-bold"
                                     onclick="this.nextElementSibling.stepDown()">-</button>
                                 <input type="number" name="quantity" value="1" min="1" max="10"
-                                    class="w-full text-center border-none focus:ring-0 p-0 text-gray-900 font-bold">
-                                <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors"
+                                    class="w-full text-center border-none focus:ring-0 p-0 text-gray-900 font-bold text-base sm:text-lg">
+                                <button type="button" class="px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 font-bold"
                                     onclick="this.previousElementSibling.stepUp()">+</button>
                             </div>
                         </div>
                         <button type="submit"
-                            class="flex-grow btn-primary flex items-center justify-center gap-3 text-lg shadow-lg shadow-brand-200">
+                            class="flex-grow bg-gradient-to-r from-brand-600 to-orange-600 hover:from-brand-700 hover:to-orange-700 text-white font-bold py-3 sm:py-4 px-6 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg shadow-lg shadow-brand-200/50 hover:shadow-xl hover:shadow-brand-300/50 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                            <i class="fas fa-shopping-bag text-lg sm:text-xl"></i>
                             <span>Adicionar ao Pedido</span>
-                            <i class="fas fa-shopping-bag"></i>
+                            <i class="fas fa-arrow-right text-sm sm:text-base"></i>
                         </button>
                     </div>
                 </form>
