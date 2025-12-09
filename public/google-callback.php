@@ -33,9 +33,10 @@ try {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_email'] = $user['email'];
+        $_SESSION['user_role'] = $user['role'] ?? 'customer';
     } else {
         // New user - create account
-        $stmt = $db->prepare("INSERT INTO users (name, email, password, phone, created_at) VALUES (?, ?, ?, '', NOW())");
+        $stmt = $db->prepare("INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, '', 'customer')");
 
         // Use a random password since they're using Google OAuth
         $randomPassword = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
@@ -52,13 +53,16 @@ try {
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_name'] = $userInfo['name'];
         $_SESSION['user_email'] = $userInfo['email'];
+        $_SESSION['user_role'] = 'customer';
     }
 
-    // Success! Redirect to appropriate page
+    // Success! Show welcome message and redirect
+    $_SESSION['flash_success'] = "Bem-vindo, " . $_SESSION['user_name'] . "! 🎉";
+
     if (isset($_GET['redirect'])) {
         header('Location: ' . $_GET['redirect']);
     } else {
-        header('Location: menu.php');
+        header('Location: index.php');
     }
     exit;
 

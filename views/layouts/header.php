@@ -117,4 +117,36 @@
             </div>
         </div>
     </nav>
+
+    <!-- Flash Messages (Success/Error) -->
+    <?php if (isset($_SESSION['flash_success'])): ?>
+        <div class="fixed top-24 right-4 z-50 animate-slide-down">
+            <div class="bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-md">
+                <i class="fas fa-check-circle text-2xl"></i>
+                <span class="font-medium"><?= $_SESSION['flash_success'] ?></span>
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                document.querySelector('.animate-slide-down')?.remove();
+            }, 4000);
+        </script>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['flash_error'])): ?>
+        <div class="fixed top-24 right-4 z-50 animate-slide-down">
+            <div class="bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-md">
+                <i class="fas fa-exclamation-circle text-2xl"></i>
+                <span class="font-medium"><?= $_SESSION['flash_error'] ?></span>
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                document.querySelector('.animate-slide-down')?.remove();
+            }, 4000);
+        </script>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?>
+
     <main class="flex-grow">
