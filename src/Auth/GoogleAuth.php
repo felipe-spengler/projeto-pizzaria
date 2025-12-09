@@ -141,5 +141,4 @@ class GoogleAuth
 
         return !empty($clientId) && !empty($clientSecret) && !empty($redirectUri);
     }
-    }
 }
