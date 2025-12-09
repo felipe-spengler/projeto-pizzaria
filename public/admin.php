@@ -1,9 +1,11 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Config\Database;
+use App\Config\Session;
+
+// Inicia sessão com configurações otimizadas
+Session::start();
 
 // Security Check
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
@@ -221,37 +223,163 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     </div>
 </div>
 
-<!-- Audio Alert (Simple Beep) -->
-<audio id="notificationSound">
-    <source
-        src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIwDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8P//OEAAAAAAA0gAAAAAAAEjAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//OEAAABi4F0AAAAJ0AAAAAAAAAAAAF8AAAAA0gAAAAAAAAAAAF8AAAAA0gAA"
-        type="audio/mpeg">
+<!-- Audio Alert - Campainha de Notificação -->
+<audio id="notificationSound" preload="auto" volume="0.8">
+    <!-- Áudio de campainha de CDN público confiável -->
+    <source src="https://assets.mixkit.co/sfx/preview/mixkit-doorbell-single-press-569.mp3" type="audio/mpeg">
+    <!-- Fallback: áudio gerado via Web Audio API se CDN falhar -->
 </audio>
 
 <script>
-    // Audio context for better browser support (optional, sticking to HTML5 audio first)
-    const audio = document.getElementById('notificationSound');
+    // Configuração de áudio melhorada
+    let audio = document.getElementById('notificationSound');
+    let audioInitialized = false;
     let lastOrderId = <?= $orders[0]['id'] ?? 0 ?>;
+    
+    // Função para inicializar áudio (requer interação do usuário primeiro)
+    function initAudio() {
+        if (audioInitialized) return;
+        
+        // Tenta carregar o áudio
+        audio.load();
+        
+        // Cria um áudio de campainha simples usando Web Audio API como fallback
+        if (!audio.canPlayType('audio/mpeg')) {
+            createFallbackBellSound();
+        }
+        
+        audioInitialized = true;
+    }
+    
+    // Função para criar som de campainha usando Web Audio API
+    function createFallbackBellSound() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800; // Frequência da campainha
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+            
+            // Segundo toque (ding-dong)
+            setTimeout(() => {
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+                
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+                
+                oscillator2.frequency.value = 600;
+                oscillator2.type = 'sine';
+                
+                gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator2.start(audioContext.currentTime);
+                oscillator2.stop(audioContext.currentTime + 0.5);
+            }, 300);
+        } catch (e) {
+            console.log('Web Audio API não disponível:', e);
+        }
+    }
+    
+    // Função para tocar o som
+    function playNotificationSound() {
+        if (!audioInitialized) {
+            initAudio();
+        }
+        
+        // Reseta o áudio para o início
+        audio.currentTime = 0;
+        
+        // Tenta tocar o áudio do arquivo
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    console.log('Áudio de notificação tocado com sucesso!');
+                })
+                .catch(err => {
+                    console.log('Tentando fallback de áudio:', err);
+                    // Se falhar, usa Web Audio API
+                    createFallbackBellSound();
+                });
+        } else {
+            // Fallback para navegadores antigos
+            createFallbackBellSound();
+        }
+    }
+    
+    // Inicializa áudio quando a página carrega (requer interação do usuário)
+    // Vamos tentar inicializar quando o usuário interagir com a página pela primeira vez
+    let userInteracted = false;
+    
+    function handleUserInteraction() {
+        if (!userInteracted) {
+            userInteracted = true;
+            initAudio();
+            // Toca um som silencioso para "desbloquear" o áudio
+            audio.volume = 0.01;
+            audio.play().then(() => {
+                audio.volume = 0.8; // Volume normal
+                audio.pause();
+                audio.currentTime = 0;
+            }).catch(() => {});
+        }
+    }
+    
+    document.addEventListener('click', handleUserInteraction, { once: true });
+    document.addEventListener('touchstart', handleUserInteraction, { once: true });
+    document.addEventListener('keydown', handleUserInteraction, { once: true });
+    
+    // Tenta inicializar automaticamente após um pequeno delay
+    setTimeout(() => {
+        if (!userInteracted) {
+            initAudio();
+        }
+    }, 1000);
 
     function checkOrders() {
         fetch(`api/check_orders.php?last_id=${lastOrderId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.new_orders_count > 0 && data.max_id > lastOrderId) {
-                    // Play sound
-                    audio.play().catch(e => console.log("Audio play failed (user interaction needed first):", e));
-
-                    // Show visible alert
+                    // Atualiza o último ID
+                    lastOrderId = data.max_id;
+                    
+                    // Toca o som de notificação
+                    playNotificationSound();
+                    
+                    // Mostra alerta visual
                     const alertDiv = document.createElement('div');
-                    alertDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-bounce cursor-pointer';
-                    alertDiv.innerHTML = '<i class="fas fa-bell mr-2"></i> Novo pedido recebido! Clique para atualizar.';
+                    alertDiv.className = 'fixed top-4 right-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-bounce cursor-pointer border-2 border-white';
+                    alertDiv.innerHTML = '<div class="flex items-center gap-3"><i class="fas fa-bell text-2xl animate-pulse"></i><div><div class="font-bold text-lg">🔔 Novo Pedido!</div><div class="text-sm opacity-90">Clique para atualizar</div></div></div>';
                     alertDiv.onclick = () => location.reload();
                     document.body.appendChild(alertDiv);
+                    
+                    // Remove o alerta após 5 segundos se não clicado
+                    setTimeout(() => {
+                        if (alertDiv.parentNode) {
+                            alertDiv.style.transition = 'opacity 0.5s';
+                            alertDiv.style.opacity = '0';
+                            setTimeout(() => alertDiv.remove(), 500);
+                        }
+                    }, 5000);
 
-                    // Auto reload after 2s sound
+                    // Auto reload após 3 segundos (dá tempo do som tocar)
                     setTimeout(() => {
                         location.reload();
-                    }, 2000);
+                    }, 3000);
                 }
             })
             .catch(err => console.error('Error checking orders:', err));
