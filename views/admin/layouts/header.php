@@ -101,7 +101,16 @@
             <header class="flex justify-between items-center mb-8">
                 <div>
                     <h1 class="font-display font-bold text-2xl text-gray-900">Dashboard</h1>
-                    <p class="text-gray-500 text-sm">Bem-vindo ao painel de controle.</p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-gray-500 text-sm">Bem-vindo ao painel de controle.</p>
+                        <span class="text-gray-300">|</span>
+                        <div
+                            class="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+                            <i class="fas fa-sync-alt text-brand-500 animate-[spin_4s_linear_infinite]"></i>
+                            Atualizado às <span id="lastUpdatedTime"
+                                class="font-bold font-mono text-gray-700"><?= date('H:i:s') ?></span>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex items-center gap-4">
                     <button

@@ -109,11 +109,13 @@ if (!empty($comboSteps)) {
                     <i class="fas fa-arrow-left mr-2"></i> Voltar ao cardápio
                 </a>
 
-                <h1 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-2"><?= $product['name'] ?></h1>
+                <h1 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-2">
+                    <?= $product['name'] ?></h1>
                 <p class="text-xl sm:text-2xl text-brand-600 font-bold mb-4 sm:mb-6">R$
                     <?= number_format($product['price'], 2, ',', '.') ?>
                 </p>
-                <p class="text-gray-600 mb-4 sm:mb-8 leading-relaxed text-sm sm:text-base"><?= $product['description'] ?></p>
+                <p class="text-gray-600 mb-4 sm:mb-8 leading-relaxed text-sm sm:text-base">
+                    <?= $product['description'] ?></p>
 
                 <form action="cart.php" method="POST" id="addToCartForm">
                     <input type="hidden" name="action" value="add">
@@ -132,7 +134,8 @@ if (!empty($comboSteps)) {
                         ?>
                         <div class="mb-4 sm:mb-6 lg:mb-8 p-3 sm:p-4 lg:p-6 bg-gray-50 rounded-xl sm:rounded-2xl border border-gray-100 step-container"
                             data-max="<?= $step['max'] ?>" data-step-index="<?= $index ?>">
-                            <h3 class="font-bold text-gray-900 text-base sm:text-lg mb-3 sm:mb-4 flex items-center justify-between flex-wrap gap-2">
+                            <h3
+                                class="font-bold text-gray-900 text-base sm:text-lg mb-3 sm:mb-4 flex items-center justify-between flex-wrap gap-2">
                                 <span class="flex items-center">
                                     <span
                                         class="bg-brand-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs mr-2 flex-shrink-0"><?= $index + 1 ?></span>
@@ -144,7 +147,8 @@ if (!empty($comboSteps)) {
                                 </span>
                             </h3>
 
-                            <div class="space-y-2 sm:space-y-3 max-h-64 sm:max-h-80 overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
+                            <div
+                                class="space-y-2 sm:space-y-3 max-h-64 sm:max-h-80 overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                                 <?php foreach ($availableFlavors as $flavor): ?>
                                     <label
                                         class="flex items-start p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-gray-200 cursor-pointer hover:border-brand-400 hover:bg-white hover:shadow-sm transition-all select-none bg-white">
@@ -153,8 +157,14 @@ if (!empty($comboSteps)) {
                                             data-step="<?= $index ?>">
                                         <div class="ml-2 sm:ml-3 flex-grow min-w-0">
                                             <div class="flex justify-between items-start gap-2 flex-wrap">
-                                                <span class="font-medium text-gray-900 text-xs sm:text-sm break-words"><?= $flavor['name'] ?></span>
-                                                <?php if ($flavor['additional_price'] > 0): ?>
+                                                <span
+                                                    class="font-medium text-gray-900 text-xs sm:text-sm break-words"><?= $flavor['name'] ?></span>
+                                                <?php
+                                                // Only show additional price if it's a Combo OR if the flavor is NOT a beverage/refrigerante
+                                                // (This handles the rule: "Refrigerante 5 reais is only in combos")
+                                                $showPrice = $flavor['additional_price'] > 0 && ($isCombo || !in_array($flavor['type'], ['refrigerante', 'bebida', 'cerveja']));
+                                                if ($showPrice):
+                                                    ?>
                                                     <span
                                                         class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">+
                                                         R$
@@ -162,7 +172,8 @@ if (!empty($comboSteps)) {
                                                 <?php endif; ?>
                                             </div>
                                             <?php if ($flavor['description']): ?>
-                                                <p class="text-xs text-gray-600 mt-1 leading-relaxed break-words"><?= htmlspecialchars($flavor['description']) ?>
+                                                <p class="text-xs text-gray-600 mt-1 leading-relaxed break-words">
+                                                    <?= htmlspecialchars($flavor['description']) ?>
                                                 </p>
                                             <?php endif; ?>
                                         </div>
@@ -179,11 +190,13 @@ if (!empty($comboSteps)) {
                         <div class="w-full sm:w-32">
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">Quantidade</label>
                             <div class="flex items-center border-2 border-gray-300 rounded-xl overflow-hidden bg-white">
-                                <button type="button" class="px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 font-bold"
+                                <button type="button"
+                                    class="px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 font-bold"
                                     onclick="this.nextElementSibling.stepDown()">-</button>
                                 <input type="number" name="quantity" value="1" min="1" max="10"
                                     class="w-full text-center border-none focus:ring-0 p-0 text-gray-900 font-bold text-base sm:text-lg">
-                                <button type="button" class="px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 font-bold"
+                                <button type="button"
+                                    class="px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 font-bold"
                                     onclick="this.previousElementSibling.stepUp()">+</button>
                             </div>
                         </div>

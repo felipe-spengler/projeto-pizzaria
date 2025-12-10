@@ -1,9 +1,11 @@
 <?php
-session_start();
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Config\Database;
+use App\Config\Session;
 use App\Auth\GoogleAuth;
+
+Session::start();
 
 $db = Database::getInstance()->getConnection();
 $googleAuth = new GoogleAuth();

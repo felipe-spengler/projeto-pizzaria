@@ -11,22 +11,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
+$controller = new App\Controllers\CustomerController();
 
-// Fetch Customers with Stats
-$sql = "
-    SELECT 
-        u.*, 
-        COUNT(o.id) as orders_count, 
-        SUM(CASE WHEN o.status != 'cancelled' THEN o.total_amount ELSE 0 END) as total_spent,
-        MAX(o.created_at) as last_order_date
-    FROM users u
-    LEFT JOIN orders o ON u.id = o.user_id
-    WHERE u.role = 'customer'
-    GROUP BY u.id
-    ORDER BY total_spent DESC
-";
-$customers = $db->query($sql)->fetchAll();
+$filters = [];
+if (isset($_GET['filter']) && $_GET['filter'] === 'inactive') {
+    $filters['inactive_days'] = 60;
+}
+
+$customers = $controller->index($filters);
 
 include __DIR__ . '/../views/admin/layouts/header.php';
 ?>
@@ -83,7 +75,8 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                                 <div>
                                     <div class="font-medium text-gray-900"><?= $customer['name'] ?></div>
                                     <div class="text-xs text-gray-500">Desde
-                                        <?= date('d/m/Y', strtotime($customer['created_at'])) ?></div>
+                                        <?= date('d/m/Y', strtotime($customer['created_at'])) ?>
+                                    </div>
                                 </div>
                             </div>
                         </td>

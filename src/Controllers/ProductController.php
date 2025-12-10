@@ -1,0 +1,86 @@
+<?php
+namespace App\Controllers;
+
+use App\Config\Database;
+use PDO;
+
+class ProductController
+{
+    private $db;
+
+    public function __construct()
+    {
+        $this->db = Database::getInstance()->getConnection();
+    }
+
+    // LIST (GET)
+    public function index()
+    {
+        $sql = "SELECT p.*, c.name as category_name, c.icon as category_icon 
+                FROM products p 
+                JOIN categories c ON p.category_id = c.id 
+                ORDER BY p.category_id, p.name";
+        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // SHOW (GET via ID)
+    public function show($id)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // STORE (POST)
+    public function store($data)
+    {
+        // Validation could go here
+        $sql = "INSERT INTO products (name, description, price, image_url, category_id, is_customizable, max_flavors, allowed_flavor_types, active) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            $data['name'],
+            $data['description'],
+            $data['price'],
+            $data['image_url'] ?? '',
+            $data['category_id'],
+            isset($data['is_customizable']) ? 1 : 0,
+            $data['max_flavors'] ?? 1,
+            $data['allowed_flavor_types'] ?? ''
+        ]);
+        return $this->db->lastInsertId();
+    }
+
+    // UPDATE (PUT/POST)
+    public function update($id, $data)
+    {
+        $sql = "UPDATE products SET name=?, description=?, price=?, image_url=?, category_id=?, is_customizable=?, max_flavors=?, allowed_flavor_types=?, active=? WHERE id=?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            $data['name'],
+            $data['description'],
+            $data['price'],
+            $data['image_url'],
+            $data['category_id'],
+            isset($data['is_customizable']) ? 1 : 0,
+            $data['max_flavors'],
+            $data['allowed_flavor_types'],
+            isset($data['active']) ? 1 : 0,
+            $id
+        ]);
+    }
+
+    // DELETE (DELETE)
+    public function delete($id)
+    {
+        $stmt = $this->db->prepare("DELETE FROM products WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    // TOGGLE ACTIVE (Custom Action)
+    public function toggleActive($id)
+    {
+        $stmt = $this->db->prepare("UPDATE products SET active = NOT active WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+}

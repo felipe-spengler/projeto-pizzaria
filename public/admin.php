@@ -235,55 +235,55 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     let audio = document.getElementById('notificationSound');
     let audioInitialized = false;
     let lastOrderId = <?= $orders[0]['id'] ?? 0 ?>;
-    
+
     // Função para inicializar áudio (requer interação do usuário primeiro)
     function initAudio() {
         if (audioInitialized) return;
-        
+
         // Tenta carregar o áudio
         audio.load();
-        
+
         // Cria um áudio de campainha simples usando Web Audio API como fallback
         if (!audio.canPlayType('audio/mpeg')) {
             createFallbackBellSound();
         }
-        
+
         audioInitialized = true;
     }
-    
+
     // Função para criar som de campainha usando Web Audio API
     function createFallbackBellSound() {
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
+
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
+
             oscillator.frequency.value = 800; // Frequência da campainha
             oscillator.type = 'sine';
-            
+
             gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            
+
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.5);
-            
+
             // Segundo toque (ding-dong)
             setTimeout(() => {
                 const oscillator2 = audioContext.createOscillator();
                 const gainNode2 = audioContext.createGain();
-                
+
                 oscillator2.connect(gainNode2);
                 gainNode2.connect(audioContext.destination);
-                
+
                 oscillator2.frequency.value = 600;
                 oscillator2.type = 'sine';
-                
+
                 gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                
+
                 oscillator2.start(audioContext.currentTime);
                 oscillator2.stop(audioContext.currentTime + 0.5);
             }, 300);
@@ -291,19 +291,19 @@ include __DIR__ . '/../views/admin/layouts/header.php';
             console.log('Web Audio API não disponível:', e);
         }
     }
-    
+
     // Função para tocar o som
     function playNotificationSound() {
         if (!audioInitialized) {
             initAudio();
         }
-        
+
         // Reseta o áudio para o início
         audio.currentTime = 0;
-        
+
         // Tenta tocar o áudio do arquivo
         const playPromise = audio.play();
-        
+
         if (playPromise !== undefined) {
             playPromise
                 .then(() => {
@@ -319,11 +319,11 @@ include __DIR__ . '/../views/admin/layouts/header.php';
             createFallbackBellSound();
         }
     }
-    
+
     // Inicializa áudio quando a página carrega (requer interação do usuário)
     // Vamos tentar inicializar quando o usuário interagir com a página pela primeira vez
     let userInteracted = false;
-    
+
     function handleUserInteraction() {
         if (!userInteracted) {
             userInteracted = true;
@@ -334,14 +334,14 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                 audio.volume = 0.8; // Volume normal
                 audio.pause();
                 audio.currentTime = 0;
-            }).catch(() => {});
+            }).catch(() => { });
         }
     }
-    
+
     document.addEventListener('click', handleUserInteraction, { once: true });
     document.addEventListener('touchstart', handleUserInteraction, { once: true });
     document.addEventListener('keydown', handleUserInteraction, { once: true });
-    
+
     // Tenta inicializar automaticamente após um pequeno delay
     setTimeout(() => {
         if (!userInteracted) {
@@ -350,23 +350,28 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     }, 1000);
 
     function checkOrders() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('pt-BR', { hour12: false });
+        const lastUpdatedEl = document.getElementById('lastUpdatedTime');
+        if (lastUpdatedEl) lastUpdatedEl.innerText = timeString;
+
         fetch(`api/check_orders.php?last_id=${lastOrderId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.new_orders_count > 0 && data.max_id > lastOrderId) {
                     // Atualiza o último ID
                     lastOrderId = data.max_id;
-                    
+
                     // Toca o som de notificação
                     playNotificationSound();
-                    
+
                     // Mostra alerta visual
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'fixed top-4 right-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-bounce cursor-pointer border-2 border-white';
                     alertDiv.innerHTML = '<div class="flex items-center gap-3"><i class="fas fa-bell text-2xl animate-pulse"></i><div><div class="font-bold text-lg">🔔 Novo Pedido!</div><div class="text-sm opacity-90">Clique para atualizar</div></div></div>';
                     alertDiv.onclick = () => location.reload();
                     document.body.appendChild(alertDiv);
-                    
+
                     // Remove o alerta após 5 segundos se não clicado
                     setTimeout(() => {
                         if (alertDiv.parentNode) {

@@ -11,32 +11,23 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
+$controller = new App\Controllers\ProductController();
 
-// Handle Delete
-if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['id'])) {
-    $stmt = $db->prepare("DELETE FROM products WHERE id = ?");
-    $stmt->execute([$_POST['id']]);
-    header('Location: admin_products.php?msg=deleted');
-    exit;
+// Handle Actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'])) {
+    if ($_POST['action'] === 'delete') {
+        $controller->delete($_POST['id']);
+        header('Location: admin_products.php?msg=deleted');
+        exit;
+    } elseif ($_POST['action'] === 'toggle_active') {
+        $controller->toggleActive($_POST['id']);
+        header('Location: admin_products.php');
+        exit;
+    }
 }
 
-// Handle Toggle Active
-if (isset($_POST['action']) && $_POST['action'] === 'toggle_active' && isset($_POST['id'])) {
-    $stmt = $db->prepare("UPDATE products SET active = NOT active WHERE id = ?");
-    $stmt->execute([$_POST['id']]);
-    header('Location: admin_products.php');
-    exit;
-}
-
-// Fetch Products with Category
-$sql = "
-    SELECT p.*, c.name as category_name, c.icon as category_icon
-    FROM products p
-    JOIN categories c ON p.category_id = c.id
-    ORDER BY p.category_id, p.name
-";
-$products = $db->query($sql)->fetchAll();
+// Fetch Products
+$products = $controller->index();
 
 include __DIR__ . '/../views/admin/layouts/header.php';
 ?>

@@ -11,16 +11,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-$db = Database::getInstance()->getConnection();
-
+$controller = new App\Controllers\FlavorController();
 $flavor = null;
 $error = null;
 
 if (isset($_GET['id'])) {
-    $stmt = $db->prepare("SELECT * FROM flavors WHERE id = ?");
-    $stmt->execute([$_GET['id']]);
-    $flavor = $stmt->fetch();
-
+    $flavor = $controller->show($_GET['id']);
     if (!$flavor) {
         header('Location: admin_flavors.php');
         exit;
@@ -30,24 +26,22 @@ if (isset($_GET['id'])) {
 // Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
-    $description = $_POST['description'];
-    $type = $_POST['type'];
-    $additionalPrice = $_POST['additional_price'];
-    $isAvailable = isset($_POST['is_available']) ? 1 : 0;
 
     if (empty($name)) {
         $error = "Nome é obrigatório.";
     } else {
+        $data = [
+            'name' => $_POST['name'],
+            'description' => $_POST['description'],
+            'type' => $_POST['type'],
+            'additional_price' => $_POST['additional_price'],
+            'is_available' => isset($_POST['is_available'])
+        ];
+
         if ($flavor) {
-            // Update
-            $sql = "UPDATE flavors SET name=?, description=?, type=?, additional_price=?, is_available=? WHERE id=?";
-            $stmt = $db->prepare($sql);
-            $stmt->execute([$name, $description, $type, $additionalPrice, $isAvailable, $flavor['id']]);
+            $controller->update($flavor['id'], $data);
         } else {
-            // Create
-            $sql = "INSERT INTO flavors (name, description, type, additional_price, is_available) VALUES (?, ?, ?, ?, ?)";
-            $stmt = $db->prepare($sql);
-            $stmt->execute([$name, $description, $type, $additionalPrice, $isAvailable]);
+            $controller->store($data);
         }
 
         header('Location: admin_flavors.php');

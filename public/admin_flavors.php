@@ -13,22 +13,19 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 
 $db = Database::getInstance()->getConnection();
 
-// Handle Delete
-if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['id'])) {
-    $stmt = $db->prepare("DELETE FROM flavors WHERE id = ?");
-    $stmt->execute([$_POST['id']]);
-    header('Location: admin_flavors.php?msg=deleted');
-    exit;
-}
+$controller = new App\Controllers\FlavorController();
 
-// Handle Toggle Availability
-if (isset($_POST['action']) && $_POST['action'] === 'toggle_available' && isset($_POST['id'])) {
-    // Note: Schema has 'is_available' but my previous check showed it might default to TRUE.
-    // Let's check schema again. Yes: `is_available` boolean DEFAULT TRUE.
-    $stmt = $db->prepare("UPDATE flavors SET is_available = NOT is_available WHERE id = ?");
-    $stmt->execute([$_POST['id']]);
-    header('Location: admin_flavors.php');
-    exit;
+// Handle Actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'])) {
+    if ($_POST['action'] === 'delete') {
+        $controller->delete($_POST['id']);
+        header('Location: admin_flavors.php?msg=deleted');
+        exit;
+    } elseif ($_POST['action'] === 'toggle') {
+        $controller->toggleAvailability($_POST['id']);
+        header('Location: admin_flavors.php');
+        exit;
+    }
 }
 
 // Filter by Type

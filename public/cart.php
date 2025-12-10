@@ -13,186 +13,30 @@ $guestName = trim($_POST['guest_name'] ?? '');
 $guestPhone = trim($_POST['guest_phone'] ?? '');
 $isLoggedIn = isset($_SESSION['user_id']);
 
-// --- Action Handlers ---
+$cartController = new App\Controllers\CartController();
 
-// 1. Add to Cart
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
-    $productId = $_POST['product_id'];
-    $quantity = (int) $_POST['quantity'];
-    $rawFlavors = $_POST['flavors'] ?? [];
-    $flavors = [];
-
-    // Flatten multidimensional array from steps if necessary
-    foreach ($rawFlavors as $item) {
-        if (is_array($item)) {
-            foreach ($item as $subItem)
-                $flavors[] = $subItem;
-        } else {
-            $flavors[] = $item;
-        }
+// Handle Actions (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'add') {
+        $cartController->addToCart($_POST);
+        header('Location: cart.php');
+        exit;
+    }
+    
+    if ($_POST['action'] === 'remove') {
+        $cartController->removeItem((int)$_POST['index']);
+        header('Location: cart.php');
+        exit;
     }
 
-    // Verify Product
-    $stmt = $db->prepare("SELECT * FROM products WHERE id = ?");
-    $stmt->execute([$productId]);
-    $product = $stmt->fetch();
-
-    if ($product) {
-        $cartItem = [
-            'product_id' => $product['id'],
-            'name' => $product['name'],
-            'price' => (float) $product['price'],
-            'quantity' => $quantity,
-            'flavors' => []
-        ];
-
-        // Fetch Flavor Details
-        $totalFlavorPrice = 0;
-        if (!empty($flavors)) {
-            $in = str_repeat('?,', count($flavors) - 1) . '?';
-            $stmt = $db->prepare("SELECT * FROM flavors WHERE id IN ($in)");
-            $stmt->execute($flavors);
-            $flavorData = $stmt->fetchAll();
-
-            foreach ($flavorData as $f) {
-                $cartItem['flavors'][] = [
-                    'id' => $f['id'], // Added ID for DB insertion
-                    'name' => $f['name'],
-                    'price' => (float) $f['additional_price']
-                ];
-                $totalFlavorPrice += (float) $f['additional_price'];
-            }
-        }
-
-        // Calculate unit price with flavors
-        $cartItem['unit_total'] = $cartItem['price'] + $totalFlavorPrice;
-        $cartItem['total'] = $cartItem['unit_total'] * $quantity;
-
-        $_SESSION['cart'][] = $cartItem;
-    }
-
-    header('Location: cart.php');
-    exit;
-}
-
-// 2. Remove from Cart
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'remove') {
-    $index = (int) $_POST['index'];
-    if (isset($_SESSION['cart'][$index])) {
-        unset($_SESSION['cart'][$index]);
-        $_SESSION['cart'] = array_values($_SESSION['cart']); // Reindex
-    }
-    header('Location: cart.php');
-    exit;
-}
-
-// 3. Checkout
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'checkout') {
-    $cart = $_SESSION['cart'] ?? [];
-    if (empty($cart)) {
-        $errors[] = 'Seu carrinho está vazio.';
-    }
-
-    if (!$isLoggedIn && empty($guestName)) {
-        $errors[] = 'Informe seu nome para continuar sem login.';
-    }
-
-    // Identify user (creates um "guest" vinculado à sessão)
-    if (empty($errors)) {
-        if ($isLoggedIn) {
-            $userId = $_SESSION['user_id'];
-        } else {
-            if (!isset($_SESSION['guest_user_id'])) {
-                $generatedEmail = 'guest+' . session_id() . '-' . time() . '@pedido.local';
-                $stmtUser = $db->prepare("INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, NULL, 'customer')");
-                $stmtUser->execute([$guestName, $generatedEmail, $guestPhone]);
-                $_SESSION['guest_user_id'] = $db->lastInsertId();
-                $_SESSION['guest_user_name'] = $guestName;
-            } else {
-                // Atualiza nome/telefone do convidado caso tenha sido preenchido agora
-                $stmtUser = $db->prepare("UPDATE users SET name = ?, phone = ? WHERE id = ?");
-                $stmtUser->execute([$guestName, $guestPhone, $_SESSION['guest_user_id']]);
-            }
-            $userId = $_SESSION['guest_user_id'];
-        }
-
-        $totalAmount = array_sum(array_column($cart, 'total'));
-
-        // Inputs
-        $deliveryMethod = $_POST['delivery_method'] ?? 'pickup';
-        $paymentMethod = $_POST['payment_method'] ?? 'cash';
-        $notes = $_POST['notes'] ?? '';
-        $changeFor = null;
-        $address = '';
-
-        if ($deliveryMethod === 'delivery') {
-            $addressOption = $_POST['address_option'] ?? 'new';
-
-            if ($addressOption === 'new') {
-                // Simple address for now (will be updated with modal later)
-                $address = trim($_POST['delivery_address'] ?? '');
-                if (empty($address)) {
-                    $address = "Endereço não informado";
-                }
-            } else {
-                // Existing address ID
-                $addrId = (int) $addressOption;
-                $stmtGet = $db->prepare("SELECT * FROM addresses WHERE id = ? AND user_id = ?");
-                $stmtGet->execute([$addrId, $userId]);
-                $addrRow = $stmtGet->fetch();
-
-                if ($addrRow) {
-                    $address = "{$addrRow['street']}, {$addrRow['number']} - {$addrRow['neighborhood']}";
-                    if ($addrRow['complement'])
-                        $address .= " ({$addrRow['complement']})";
-                    $address .= " - {$addrRow['city']}/{$addrRow['state']}";
-                } else {
-                    $address = 'Endereço inválido';
-                }
-            }
-
-            // Change (troco) - only for cash payment
-            if ($paymentMethod === 'cash') {
-                $changeFor = !empty($_POST['change_for']) ? (float) $_POST['change_for'] : null;
-            }
-        } else {
-            $address = "Retirada no Balcão";
-        }
-
-        try {
-            $db->beginTransaction();
-
-            // Insert Order
-            $stmt = $db->prepare("INSERT INTO orders (user_id, status, total_amount, delivery_address, notes, delivery_method, payment_method, change_for) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$userId, $totalAmount, $address, $notes, $deliveryMethod, $paymentMethod, $changeFor]);
-            $orderId = $db->lastInsertId();
-
-            // Insert Items
-            $stmtItem = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?)");
-
-            foreach ($cart as $item) {
-                $stmtItem->execute([$orderId, $item['product_id'], $item['quantity'], $item['unit_total'], $item['total']]);
-                $itemId = $db->lastInsertId();
-
-                // Insert Flavors
-                if (!empty($item['flavors'])) {
-                    $stmtFlavor = $db->prepare("INSERT INTO order_item_flavors (order_item_id, flavor_id) VALUES (?, ?)");
-                    foreach ($item['flavors'] as $flav) {
-                        $fId = is_array($flav) ? ($flav['id'] ?? null) : $flav;
-                        if ($fId)
-                            $stmtFlavor->execute([$itemId, $fId]);
-                    }
-                }
-            }
-
-            $db->commit();
-            unset($_SESSION['cart']);
-            header("Location: cart.php?success=$orderId");
+    if ($_POST['action'] === 'checkout') {
+        $result = $cartController->checkout($_POST);
+        if ($result['success']) {
+            $_SESSION['checkout_success'] = true;
+            header("Location: cart.php?success={$result['order_id']}");
             exit;
-
-        } catch (Exception $e) {
-            $db->rollBack();
-            $errors[] = "Erro ao processar pedido: " . $e->getMessage();
+        } else {
+            $errors[] = $result['error'];
         }
     }
 }
@@ -212,71 +56,63 @@ if (isset($_SESSION['user_id'])) {
 // Success View with WhatsApp Button
 if (isset($_GET['success'])):
     $orderId = $_GET['success'];
-    // Re-fetch order details for the receipt
-    $stmt = $db->prepare("SELECT o.*, u.name as user_name, u.phone FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?");
-    $stmt->execute([$orderId]);
-    $order = $stmt->fetch();
-
-    // Fetch Items with Product Name
-    $stmt = $db->prepare("SELECT oi.*, p.name as product_name FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?");
-    $stmt->execute([$orderId]);
-    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Build Complete WhatsApp Message
-    $msg = "*🍕 NOVO PEDIDO #{$orderId}*\n";
-    $msg .= "================================\n";
-    $msg .= "*📅 Data:* " . date('d/m/Y H:i', strtotime($order['created_at'])) . "\n";
-    $msg .= "*👤 Cliente:* {$order['user_name']}\n";
-    if ($order['phone']) {
-        $msg .= "*📱 Telefone:* {$order['phone']}\n";
-    }
-    $msg .= "================================\n\n";
-
-    // Delivery Info
-    $msg .= "*📦 ENTREGA:*\n";
-    if ($order['delivery_method'] == 'delivery') {
-        $msg .= "🏍️ *Delivery*\n";
-        $msg .= "📍 " . $order['delivery_address'] . "\n";
-    } else {
-        $msg .= "🏪 *RETIRADA NO BALCÃO*\n";
-    }
-    $msg .= "\n";
-
-    // Payment Info (only for delivery)
-    if ($order['delivery_method'] == 'delivery') {
-        $msg .= "*💳 PAGAMENTO:*\n";
-        $paymentLabels = [
-            'pix' => '💰 PIX',
-            'credit_card' => '💳 Cartão de Crédito',
-            'debit_card' => '💳 Cartão de Débito',
-            'cash' => '💵 Dinheiro'
-        ];
-        $msg .= ($paymentLabels[$order['payment_method']] ?? ucfirst($order['payment_method'])) . "\n";
-        
-        // Add change info if payment is cash and change_for is set
-        if ($order['payment_method'] == 'cash' && $order['change_for']) {
-            $msg .= "💸 Troco para: R$ " . number_format($order['change_for'], 2, ',', '.') . "\n";
+    $orderController = new App\Controllers\OrderController();
+    $order = $orderController->show($orderId);
+    
+    if ($order):
+        // Build Complete WhatsApp Message
+        $msg = "*🍕 NOVO PEDIDO #{$order['id']}*\n";
+        $msg .= "================================\n";
+        $msg .= "*📅 Data:* " . date('d/m/Y H:i', strtotime($order['created_at'])) . "\n";
+        $msg .= "*👤 Cliente:* {$order['customer_name']}\n"; // Controller uses 'customer_name' alias
+        if ($order['phone']) {
+            $msg .= "*📱 Telefone:* {$order['phone']}\n";
         }
-        
+        $msg .= "================================\n\n";
+
+        // Delivery Info
+        $msg .= "*📦 ENTREGA:*\n";
+        if ($order['delivery_method'] == 'delivery') {
+            $msg .= "🏍️ *Delivery*\n";
+            $msg .= "📍 " . $order['delivery_address'] . "\n";
+        } else {
+            $msg .= "🏪 *RETIRADA NO BALCÃO*\n";
+        }
         $msg .= "\n";
-    }
 
-    // Items
-    $msg .= "*🛒 ITENS DO PEDIDO:*\n";
-    $msg .= "--------------------------------\n";
-    foreach ($items as $item) {
-        $msg .= "• *{$item['quantity']}x {$item['product_name']}*\n";
-
-        // Fetch Flavors
-        $stmtF = $db->prepare("SELECT f.name FROM order_item_flavors oif JOIN flavors f ON oif.flavor_id = f.id WHERE oif.order_item_id = ?");
-        $stmtF->execute([$item['id']]);
-        $flavors = $stmtF->fetchAll(PDO::FETCH_COLUMN);
-
-        if ($flavors) {
-            $msg .= "  _(" . implode(', ', $flavors) . ")_\n";
+        // Payment Info (only for delivery)
+        if ($order['delivery_method'] == 'delivery') {
+            $msg .= "*💳 PAGAMENTO:*\n";
+            $paymentLabels = [
+                'pix' => '💰 PIX',
+                'credit_card' => '💳 Cartão de Crédito',
+                'debit_card' => '💳 Cartão de Débito',
+                'cash' => '💵 Dinheiro'
+            ];
+            $msg .= ($paymentLabels[$order['payment_method']] ?? ucfirst($order['payment_method'])) . "\n";
+            
+            // Add change info if payment is cash and change_for is set
+            if ($order['payment_method'] == 'cash' && $order['change_for']) {
+                $msg .= "💸 Troco para: R$ " . number_format($order['change_for'], 2, ',', '.') . "\n";
+            }
+            
+            $msg .= "\n";
         }
-        $msg .= "  R$ " . number_format($item['subtotal'], 2, ',', '.') . "\n\n";
-    }
+
+        // Items
+        $msg .= "*🛒 ITENS DO PEDIDO:*\n";
+        $msg .= "--------------------------------\n";
+        foreach ($order['items'] as $item) {
+            $msg .= "• *{$item['quantity']}x {$item['product_name']}*\n";
+
+            // Flavors (Controller returns array of names)
+            if (!empty($item['flavors'])) {
+                $msg .= "  _(" . implode(', ', $item['flavors']) . ")_\n";
+            }
+            $msg .= "  R$ " . number_format($item['subtotal'], 2, ',', '.') . "\n\n";
+        }
+    endif;
+
 
     // Notes
     if ($order['notes']) {
@@ -433,6 +269,17 @@ if (isset($_GET['success'])):
                                         </div>
                                     <?php endif; ?>
 
+                                    <!-- Observations (Moved here) -->
+                                    <div class="mb-6">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                            <i class="fas fa-comment-dots text-brand-600 mr-1"></i>
+                                            Observações (opcional)
+                                        </label>
+                                        <textarea name="notes" rows="3"
+                                            class="w-full border-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 p-3 transition-all"
+                                            placeholder="Ex: sem cebola, tirar azeitona, etc..."></textarea>
+                                    </div>
+
                                     <!-- Step 1: Delivery Method -->
                                     <div class="mb-6">
                                         <div class="flex items-center gap-2 mb-4">
@@ -503,17 +350,6 @@ if (isset($_GET['success'])):
                                                 <p id="paymentSummaryText" class="text-sm text-gray-700"></p>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- Observations (Always visible) -->
-                                    <div class="mb-6">
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                            <i class="fas fa-comment-dots text-brand-600 mr-1"></i>
-                                            Observações (opcional)
-                                        </label>
-                                        <textarea name="notes" rows="3"
-                                            class="w-full border-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 p-3 transition-all"
-                                            placeholder="Ex: sem cebola, tirar azeitona, etc..."></textarea>
                                     </div>
 
                                     <!-- Submit Button -->
@@ -777,13 +613,19 @@ if (isset($_GET['success'])):
                         function selectSavedAddress(radio) {
                             selectedAddressType = radio.value;
                             document.getElementById('addressOptionInput').value = radio.value;
-
-                            // Clear new address fields when selecting saved address
-                            document.getElementById('modalNeighborhood').value = '';
-                            document.getElementById('modalStreet').value = '';
-                            document.getElementById('modalNumber').value = '';
-                            document.getElementById('modalComplement').value = '';
+                            
+                            // Optional: Visually dim the new address form?
                         }
+
+                        // Add listeners to new address fields to auto-select "new"
+                        ['modalNeighborhood', 'modalStreet', 'modalNumber', 'modalComplement'].forEach(id => {
+                            document.getElementById(id).addEventListener('focus', () => {
+                                selectedAddressType = 'new';
+                                document.getElementById('addressOptionInput').value = 'new';
+                                // Uncheck all saved address radios
+                                document.querySelectorAll('input[name="modal_address_option"]').forEach(r => r.checked = false);
+                            });
+                        });
 
                         function goToStep2() {
                             // Validate address
@@ -793,7 +635,7 @@ if (isset($_GET['success'])):
                                 const number = document.getElementById('modalNumber').value.trim();
 
                                 if (!neighborhood || !street || !number) {
-                                    alert('Por favor, preencha todos os campos obrigatórios do endereço.');
+                                    alert('Por favor, preencha todos os campos obrigatórios do endereço (Bairro, Rua, Número).');
                                     return;
                                 }
 
@@ -802,6 +644,9 @@ if (isset($_GET['success'])):
                                 document.getElementById('numberInput').value = number;
                                 document.getElementById('neighborhoodInput').value = neighborhood;
                                 document.getElementById('complementInput').value = document.getElementById('modalComplement').value.trim();
+                            } else {
+                                // Ensure ID is set
+                                document.getElementById('addressOptionInput').value = selectedAddressType;
                             }
 
                             currentModalStep = 2;

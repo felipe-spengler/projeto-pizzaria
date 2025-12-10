@@ -18,58 +18,36 @@ $startDate = $_GET['start_date'] ?? date('Y-m-01'); // FIRST day of current mont
 $endDate = $_GET['end_date'] ?? date('Y-m-d'); // Today
 $statusFilter = $_GET['status'] ?? 'all';
 
-// Prepare base query clauses
-$whereClause = "WHERE DATE(o.created_at) BETWEEN ? AND ?";
-$params = [$startDate, $endDate];
+$controller = new App\Controllers\OrderController();
 
-if ($statusFilter !== 'all') {
-    $whereClause .= " AND o.status = ?";
-    $params[] = $statusFilter;
+// Handle Status Updates/Actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['order_id'])) {
+    if ($_POST['action'] === 'update_status' && isset($_POST['status'])) {
+        $controller->updateStatus($_POST['order_id'], $_POST['status']);
+    } elseif ($_POST['action'] === 'cancel') {
+        $controller->updateStatus($_POST['order_id'], 'cancelled');
+    }
+    header('Location: ' . $_SERVER['REQUEST_URI']);
+    exit;
 }
 
-// Fetch Orders
-$sql = "
-    SELECT o.*, u.name as customer_name 
-    FROM orders o 
-    JOIN users u ON o.user_id = u.id 
-    $whereClause
-    ORDER BY o.created_at DESC
-";
-$stmt = $db->prepare($sql);
-$stmt->execute($params);
-$orders = $stmt->fetchAll();
+// Filters
+$startDate = $_GET['start_date'] ?? date('Y-m-01');
+$endDate = $_GET['end_date'] ?? date('Y-m-t');
+$statusFilter = $_GET['status'] ?? '';
 
-// Reports (Only valid transactions)
-// Total Revenue in Period
-$revenueSql = "SELECT SUM(total_amount) FROM orders o $whereClause AND o.status != 'cancelled'";
-$stmtRev = $db->prepare($revenueSql);
-$stmtRev->execute($params); // Note: reusing params might be tricky if I added status filter. 
-// Actually, revenue should probably ignore the status filter from the UI unless specifically desired, 
-// usually revenue reports want "completed/valid" orders.
-// Let's make the report independent of status filter, but dependent on "not cancelled".
-$reportParams = [$startDate, $endDate];
-$revenue = $db->prepare("SELECT SUM(total_amount) FROM orders o WHERE DATE(created_at) BETWEEN ? AND ? AND status != 'cancelled'")->execute($reportParams);
+$filters = [
+    'date_start' => $startDate,
+    'date_end' => $endDate
+];
+if ($statusFilter)
+    $filters['status'] = $statusFilter;
 
-// Better way:
-$stmtRevenue = $db->prepare("SELECT SUM(total_amount) FROM orders o WHERE DATE(created_at) BETWEEN ? AND ? AND status != 'cancelled'");
-$stmtRevenue->execute([$startDate, $endDate]);
-$totalRevenue = $stmtRevenue->fetchColumn() ?: 0;
+$orders = $controller->index($filters);
 
-// Top Products
-$topProductsSql = "
-    SELECT p.name, SUM(oi.quantity) as total_qty, SUM(oi.subtotal) as total_rev
-    FROM order_items oi
-    JOIN orders o ON oi.order_id = o.id
-    JOIN products p ON oi.product_id = p.id
-    WHERE DATE(o.created_at) BETWEEN ? AND ?
-    AND o.status != 'cancelled'
-    GROUP BY p.id, p.name
-    ORDER BY total_qty DESC
-    LIMIT 5
-";
-$stmtTop = $db->prepare($topProductsSql);
-$stmtTop->execute([$startDate, $endDate]);
-$topProducts = $stmtTop->fetchAll();
+// Reports
+$totalRevenue = $controller->getRevenueByPeriod($startDate, $endDate);
+$topProducts = $controller->getBestSellers($startDate, $endDate);
 
 include __DIR__ . '/../views/admin/layouts/header.php';
 ?>
@@ -200,7 +178,8 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                             <td class="px-6 py-4 text-gray-900">R$ <?= number_format($order['total_amount'], 2, ',', '.') ?>
                             </td>
                             <td class="px-6 py-4 text-gray-500 text-sm">
-                                <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td>
+                                <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?>
+                            </td>
                             <td class="px-6 py-4 text-right">
                                 <a href="print_receipt.php?id=<?= $order['id'] ?>" target="_blank"
                                     class="text-gray-600 hover:text-gray-800 font-medium text-sm" title="Imprimir/Ver Detalhes">
