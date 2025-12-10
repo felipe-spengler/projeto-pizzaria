@@ -229,9 +229,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
 </audio>
 
 <div class="fixed bottom-4 left-4 z-50">
-    <button onclick="playNotificationSound(false)"
-        class="bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-brand-600 transition-colors"
-        title="Testar Som da Campainha">
+    <button onclick="playNotificationSound(false)" class="bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-brand-600 transition-colors" title="Testar Som da Campainha">
         <i class="fas fa-volume-up"></i>
     </button>
 </div>
@@ -246,35 +244,38 @@ include __DIR__ . '/../views/admin/layouts/header.php';
 
     // Função para inicializar áudio (requer interação do usuário primeiro)
     function initAudio() {
-        if (audioInitialized) return;
-        audio.load();
-        audioInitialized = true;
+        if (audioInitialized) return Promise.resolve();
+        
+        // Tenta tocar e parar imediatamente para liberar o audio context do navegador
+        // Isso é crucial para navegadores mobile e políticas de autoplay rigorosas
+        return audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+            audioInitialized = true;
+            console.log("Audio Audio Context desbloqueado com sucesso!");
+        }).catch(error => {
+            console.log("Autoplay bloqueado ou interação necessária:", error);
+            // Não marcamos como inicializado para tentar novamente na próxima interação
+        });
     }
 
     // Função para tocar o som
     function playNotificationSound(loop = false) {
-        if (!audioInitialized) {
-            initAudio();
-        }
+        // Se já foi inicializado ou estamos num evento de clique (confiamos que initAudio vai resolver ou já resolveu)
+        
+        // Primeiro garantimos a inicialização
+        initAudio().then(() => {
+            // Configura Loop
+            audio.loop = loop;
+            audio.currentTime = 0;
 
-        // Configura Loop
-        audio.loop = loop;
-
-        // Reseta o áudio para o início
-        audio.currentTime = 0;
-
-        // Tenta tocar o áudio do arquivo
-        const playPromise = audio.play();
-
-        if (playPromise !== undefined) {
-            playPromise
-                .then(() => {
-                    console.log('Áudio de notificação tocado com sucesso!');
-                })
-                .catch(err => {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
                     console.log('Erro ao tocar áudio:', err);
                 });
-        }
+            }
+        });
     }
 
     function stopNotificationSound() {
@@ -290,27 +291,13 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     function handleUserInteraction() {
         if (!userInteracted) {
             userInteracted = true;
-            initAudio();
-            // Toca um som silencioso para "desbloquear" o áudio
-            audio.volume = 0.01;
-            audio.play().then(() => {
-                audio.volume = 0.8; // Volume normal
-                audio.pause();
-                audio.currentTime = 0;
-            }).catch(() => { });
+            initAudio(); // Tenta desbloquear o audio na primeira interação global
         }
     }
 
     document.addEventListener('click', handleUserInteraction, { once: true });
     document.addEventListener('touchstart', handleUserInteraction, { once: true });
     document.addEventListener('keydown', handleUserInteraction, { once: true });
-
-    // Tenta inicializar automaticamente após um pequeno delay
-    setTimeout(() => {
-        if (!userInteracted) {
-            initAudio();
-        }
-    }, 1000);
 
     function checkOrders() {
         if (isAlarmActive) return; // Não verifica se já estiver tocando
@@ -351,7 +338,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                             </button>
                         </div>
                     `;
-
+                    
                     document.body.appendChild(overlay);
 
                     // Adiciona style blink global para chamar atencao no titulo da aba
@@ -365,14 +352,14 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     }
 
     // Função global para aceitar o pedido
-    window.acknowledgeOrder = function () {
+    window.acknowledgeOrder = function() {
         stopNotificationSound();
         const overlay = document.getElementById('newOrderOverlay');
         if (overlay) overlay.remove();
-
+        
         // Limpa intervalo do titulo
         if (window.blinkInterval) clearInterval(window.blinkInterval);
-
+        
         // Reload para mostrar o novo pedido
         location.reload();
     };
