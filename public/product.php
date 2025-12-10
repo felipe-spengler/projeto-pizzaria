@@ -30,26 +30,26 @@ $comboSteps = [];
 if ($isCombo) {
     if ($product['name'] === 'COMBO P') {
         $comboSteps = [
-            ['title' => 'Pizza P (até 2 sabores)', 'type' => 'salgado', 'max' => 2],
+            ['title' => 'Pizza P (até 2 sabores)', 'type' => 'salgado,doce', 'max' => 2],
             ['title' => 'Broto Doce (1 sabor)', 'type' => 'doce', 'max' => 1],
             ['title' => 'Bebida', 'type' => 'refrigerante', 'max' => 1] // User can change from default
         ];
     } elseif ($product['name'] === 'COMBO G') {
         $comboSteps = [
-            ['title' => 'Pizza G (até 3 sabores)', 'type' => 'salgado', 'max' => 3], // G is usually 3 or 4, user said G
+            ['title' => 'Pizza G (até 3 sabores)', 'type' => 'salgado,doce', 'max' => 3], // G is usually 3 or 4, user said G
             ['title' => 'Broto Doce (1 sabor)', 'type' => 'doce', 'max' => 1],
             ['title' => 'Bebida', 'type' => 'refrigerante', 'max' => 1]
         ];
     } elseif ($product['name'] === 'COMBO GG') {
         $comboSteps = [
-            ['title' => 'Pizza GG (até 4 sabores)', 'type' => 'salgado', 'max' => 4],
+            ['title' => 'Pizza GG (até 4 sabores)', 'type' => 'salgado,doce', 'max' => 4],
             ['title' => 'Broto Doce (1 sabor)', 'type' => 'doce', 'max' => 1],
             ['title' => 'Bebida', 'type' => 'refrigerante', 'max' => 1]
         ];
     } elseif ($product['name'] === 'COMBO 2 PIZZA G') {
         $comboSteps = [
-            ['title' => 'Pizza G #1 (até 3 sabores)', 'type' => 'salgado', 'max' => 3],
-            ['title' => 'Pizza G #2 (até 3 sabores)', 'type' => 'salgado', 'max' => 3],
+            ['title' => 'Pizza G #1 (até 3 sabores)', 'type' => 'salgado,doce', 'max' => 3],
+            ['title' => 'Pizza G #2 (até 3 sabores)', 'type' => 'salgado,doce', 'max' => 3],
             ['title' => 'Bebida', 'type' => 'refrigerante', 'max' => 1]
         ];
     }

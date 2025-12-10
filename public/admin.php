@@ -228,6 +228,14 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     <source src="sounds/bell.mp3" type="audio/mpeg">
 </audio>
 
+<div class="fixed bottom-4 left-4 z-50">
+    <button onclick="playNotificationSound(false)"
+        class="bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-brand-600 transition-colors"
+        title="Testar Som da Campainha">
+        <i class="fas fa-volume-up"></i>
+    </button>
+</div>
+
 <script>
     // Configuração de áudio simplificada
     let audio = document.getElementById('notificationSound');
