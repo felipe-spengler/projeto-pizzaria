@@ -381,8 +381,8 @@ include __DIR__ . '/../views/layouts/header.php';
             });
         });
 
-        // Initial Progress
-        updateProgress();
+        // Initial State
+        showStep(0);
     });
 </script>
 
