@@ -225,13 +225,11 @@ include __DIR__ . '/../views/admin/layouts/header.php';
 
 <!-- Audio Alert - Campainha de Notificação -->
 <audio id="notificationSound" preload="auto" volume="0.8">
-    <!-- Áudio de campainha de CDN público confiável -->
-    <source src="https://assets.mixkit.co/sfx/preview/mixkit-doorbell-single-press-569.mp3" type="audio/mpeg">
-    <!-- Fallback: áudio gerado via Web Audio API se CDN falhar -->
+    <source src="sounds/bell.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-    // Configuração de áudio melhorada
+    // Configuração de áudio simplificada
     let audio = document.getElementById('notificationSound');
     let audioInitialized = false;
     let lastOrderId = <?= $orders[0]['id'] ?? 0 ?>;
@@ -241,66 +239,8 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     // Função para inicializar áudio (requer interação do usuário primeiro)
     function initAudio() {
         if (audioInitialized) return;
-
-        // Tenta carregar o áudio
         audio.load();
-
-        // Cria um áudio de campainha simples usando Web Audio API como fallback
-        if (!audio.canPlayType('audio/mpeg')) {
-            createFallbackBellSound(false);
-        }
-
         audioInitialized = true;
-    }
-
-    // Função para criar som de campainha usando Web Audio API
-    function createFallbackBellSound(loop = false) {
-        try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-            function playTone() {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.frequency.value = 800; // Frequência da campainha
-                oscillator.type = 'sine';
-
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-
-                // Segundo toque (ding-dong)
-                setTimeout(() => {
-                    const oscillator2 = audioContext.createOscillator();
-                    const gainNode2 = audioContext.createGain();
-
-                    oscillator2.connect(gainNode2);
-                    gainNode2.connect(audioContext.destination);
-
-                    oscillator2.frequency.value = 600;
-                    oscillator2.type = 'sine';
-
-                    gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
-                    gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-                    oscillator2.start(audioContext.currentTime);
-                    oscillator2.stop(audioContext.currentTime + 0.5);
-                }, 300);
-            }
-
-            playTone();
-
-            if (loop) {
-                window.fallbackInterval = setInterval(playTone, 2000);
-            }
-        } catch (e) {
-            console.log('Web Audio API não disponível:', e);
-        }
     }
 
     // Função para tocar o som
@@ -324,13 +264,8 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                     console.log('Áudio de notificação tocado com sucesso!');
                 })
                 .catch(err => {
-                    console.log('Tentando fallback de áudio:', err);
-                    // Se falhar, usa Web Audio API
-                    createFallbackBellSound(loop);
+                    console.log('Erro ao tocar áudio:', err);
                 });
-        } else {
-            // Fallback para navegadores antigos
-            createFallbackBellSound(loop);
         }
     }
 
@@ -338,9 +273,6 @@ include __DIR__ . '/../views/admin/layouts/header.php';
         audio.pause();
         audio.currentTime = 0;
         audio.loop = false;
-        if (window.fallbackInterval) {
-            clearInterval(window.fallbackInterval);
-        }
     }
 
     // Inicializa áudio quando a página carrega (requer interação do usuário)
