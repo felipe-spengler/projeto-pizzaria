@@ -235,6 +235,8 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     let audio = document.getElementById('notificationSound');
     let audioInitialized = false;
     let lastOrderId = <?= $orders[0]['id'] ?? 0 ?>;
+    let isAlarmActive = false;
+    let pollingInterval;
 
     // Função para inicializar áudio (requer interação do usuário primeiro)
     function initAudio() {
@@ -245,58 +247,70 @@ include __DIR__ . '/../views/admin/layouts/header.php';
 
         // Cria um áudio de campainha simples usando Web Audio API como fallback
         if (!audio.canPlayType('audio/mpeg')) {
-            createFallbackBellSound();
+            createFallbackBellSound(false);
         }
 
         audioInitialized = true;
     }
 
     // Função para criar som de campainha usando Web Audio API
-    function createFallbackBellSound() {
+    function createFallbackBellSound(loop = false) {
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            function playTone() {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
 
-            oscillator.frequency.value = 800; // Frequência da campainha
-            oscillator.type = 'sine';
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
 
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.frequency.value = 800; // Frequência da campainha
+                oscillator.type = 'sine';
 
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
 
-            // Segundo toque (ding-dong)
-            setTimeout(() => {
-                const oscillator2 = audioContext.createOscillator();
-                const gainNode2 = audioContext.createGain();
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
 
-                oscillator2.connect(gainNode2);
-                gainNode2.connect(audioContext.destination);
+                // Segundo toque (ding-dong)
+                setTimeout(() => {
+                    const oscillator2 = audioContext.createOscillator();
+                    const gainNode2 = audioContext.createGain();
 
-                oscillator2.frequency.value = 600;
-                oscillator2.type = 'sine';
+                    oscillator2.connect(gainNode2);
+                    gainNode2.connect(audioContext.destination);
 
-                gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    oscillator2.frequency.value = 600;
+                    oscillator2.type = 'sine';
 
-                oscillator2.start(audioContext.currentTime);
-                oscillator2.stop(audioContext.currentTime + 0.5);
-            }, 300);
+                    gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                    oscillator2.start(audioContext.currentTime);
+                    oscillator2.stop(audioContext.currentTime + 0.5);
+                }, 300);
+            }
+
+            playTone();
+
+            if (loop) {
+                window.fallbackInterval = setInterval(playTone, 2000);
+            }
         } catch (e) {
             console.log('Web Audio API não disponível:', e);
         }
     }
 
     // Função para tocar o som
-    function playNotificationSound() {
+    function playNotificationSound(loop = false) {
         if (!audioInitialized) {
             initAudio();
         }
+
+        // Configura Loop
+        audio.loop = loop;
 
         // Reseta o áudio para o início
         audio.currentTime = 0;
@@ -312,11 +326,20 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                 .catch(err => {
                     console.log('Tentando fallback de áudio:', err);
                     // Se falhar, usa Web Audio API
-                    createFallbackBellSound();
+                    createFallbackBellSound(loop);
                 });
         } else {
             // Fallback para navegadores antigos
-            createFallbackBellSound();
+            createFallbackBellSound(loop);
+        }
+    }
+
+    function stopNotificationSound() {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.loop = false;
+        if (window.fallbackInterval) {
+            clearInterval(window.fallbackInterval);
         }
     }
 
@@ -350,6 +373,8 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     }, 1000);
 
     function checkOrders() {
+        if (isAlarmActive) return; // Não verifica se já estiver tocando
+
         const now = new Date();
         const timeString = now.toLocaleTimeString('pt-BR', { hour12: false });
         const lastUpdatedEl = document.getElementById('lastUpdatedTime');
@@ -361,37 +386,59 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                 if (data.new_orders_count > 0 && data.max_id > lastOrderId) {
                     // Atualiza o último ID
                     lastOrderId = data.max_id;
+                    isAlarmActive = true;
 
-                    // Toca o som de notificação
-                    playNotificationSound();
+                    // Toca o som de notificação EM LOOP
+                    playNotificationSound(true);
 
-                    // Mostra alerta visual
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'fixed top-4 right-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-bounce cursor-pointer border-2 border-white';
-                    alertDiv.innerHTML = '<div class="flex items-center gap-3"><i class="fas fa-bell text-2xl animate-pulse"></i><div><div class="font-bold text-lg">🔔 Novo Pedido!</div><div class="text-sm opacity-90">Clique para atualizar</div></div></div>';
-                    alertDiv.onclick = () => location.reload();
-                    document.body.appendChild(alertDiv);
+                    // Stop polling while alerting
+                    clearInterval(pollingInterval);
 
-                    // Remove o alerta após 5 segundos se não clicado
-                    setTimeout(() => {
-                        if (alertDiv.parentNode) {
-                            alertDiv.style.transition = 'opacity 0.5s';
-                            alertDiv.style.opacity = '0';
-                            setTimeout(() => alertDiv.remove(), 500);
-                        }
-                    }, 5000);
+                    // Cria Overlay de Tela Inteira
+                    const overlay = document.createElement('div');
+                    overlay.id = 'newOrderOverlay';
+                    overlay.className = 'fixed inset-0 bg-black/80 z-[60] flex items-center justify-center backdrop-blur-sm animate-pulse';
+                    overlay.innerHTML = `
+                        <div class="bg-white rounded-3xl p-8 max-w-sm mx-4 text-center shadow-2xl transform scale-100 transition-transform">
+                            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-bell text-4xl text-green-600 animate-swing"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold text-gray-900 mb-2">Novo Pedido!</h2>
+                            <p class="text-gray-500 mb-8">Um novo pedido acabou de chegar na cozinha.</p>
+                            <button onclick="acknowledgeOrder()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-green-500/30 transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-3">
+                                <i class="fas fa-check-circle text-xl"></i>
+                                <span>Aceitar e Ver Pedido</span>
+                            </button>
+                        </div>
+                    `;
 
-                    // Auto reload após 3 segundos (dá tempo do som tocar)
-                    setTimeout(() => {
-                        location.reload();
-                    }, 3000);
+                    document.body.appendChild(overlay);
+
+                    // Adiciona style blink global para chamar atencao no titulo da aba
+                    let originalTitle = document.title;
+                    window.blinkInterval = setInterval(() => {
+                        document.title = document.title === "🔔 NOVO PEDIDO!" ? originalTitle : "🔔 NOVO PEDIDO!";
+                    }, 1000);
                 }
             })
             .catch(err => console.error('Error checking orders:', err));
     }
 
+    // Função global para aceitar o pedido
+    window.acknowledgeOrder = function () {
+        stopNotificationSound();
+        const overlay = document.getElementById('newOrderOverlay');
+        if (overlay) overlay.remove();
+
+        // Limpa intervalo do titulo
+        if (window.blinkInterval) clearInterval(window.blinkInterval);
+
+        // Reload para mostrar o novo pedido
+        location.reload();
+    };
+
     // Poll every 10 seconds
-    setInterval(checkOrders, 10000);
+    pollingInterval = setInterval(checkOrders, 10000);
 
     // Mark as Viewed function
     function markViewed(orderId) {
