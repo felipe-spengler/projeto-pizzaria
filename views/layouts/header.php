@@ -1,3 +1,22 @@
+<?php
+// Ensure session is started securely
+if (session_status() === PHP_SESSION_NONE) {
+    // Check if autoloader is needed
+    if (!class_exists('App\Config\Session')) {
+        $autoloadPath = __DIR__ . '/../../vendor/autoload.php';
+        if (file_exists($autoloadPath)) {
+            require_once $autoloadPath;
+        }
+    }
+
+    // Start Session using our Config class if available, otherwise fallback
+    if (class_exists('App\Config\Session')) {
+        App\Config\Session::start();
+    } else {
+        session_start();
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -36,24 +55,32 @@
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #e11d48;
             border-radius: 10px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #be123c;
         }
+
         /* Smooth transitions */
         * {
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         /* Touch improvements for mobile */
         @media (max-width: 640px) {
-            button, a, label {
+
+            button,
+            a,
+            label {
                 -webkit-tap-highlight-color: rgba(225, 29, 72, 0.1);
             }
         }
