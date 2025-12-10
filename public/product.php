@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Config\Database;
+use App\Config\Session;
+
+Session::start();
 
 $id = $_GET['id'] ?? null;
 if (!$id) {
@@ -85,9 +88,9 @@ if (!empty($comboSteps)) {
         $allFlavors[$f['type']][] = $f;
     }
 }
-?>
 
-<?php include __DIR__ . '/../views/layouts/header.php'; ?>
+include __DIR__ . '/../views/layouts/header.php';
+?>
 
 <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 lg:py-12">
     <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100">
