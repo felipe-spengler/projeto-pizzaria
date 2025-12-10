@@ -1,4 +1,7 @@
-<?php include __DIR__ . '/../views/layouts/header.php'; ?>
+<?php
+require_once __DIR__ . '/../vendor/autoload.php';
+include __DIR__ . '/../views/layouts/header.php';
+?>
 
 <!-- Hero Section -->
 <div
