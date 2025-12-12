@@ -25,13 +25,23 @@ if (!$product) {
 // --- Image Override Logic (Sync with menu.php) ---
 $pNameNorm = mb_strtoupper($product['name'] ?? '', 'UTF-8');
 if ($product['category_id'] == 2) { // Calzones
-    $product['image_url'] = 'assets/images/calzone.jpg';
+    $product['image_url'] = 'assets/images/calzone-real.png';
 } elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
-    $product['image_url'] = 'assets/images/combo-2-pizzas.png';
+    $product['image_url'] = 'assets/images/combo-real.jpg';
 } elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {
     $product['image_url'] = 'assets/images/coca-cola-2l.png';
 } elseif ($pNameNorm === 'REFRIGERANTE LATA') {
     $product['image_url'] = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
+} elseif (str_contains($pNameNorm, 'PIZZA PEQUENA')) {
+    $product['image_url'] = 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80';
+} elseif (str_contains($pNameNorm, 'PIZZA MÉDIA')) {
+    $product['image_url'] = 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80';
+} elseif (str_contains($pNameNorm, 'PIZZA GRANDE')) {
+    $product['image_url'] = 'https://images.unsplash.com/photo-1594007654729-407eedc4be65?auto=format&fit=crop&w=800&q=80';
+} elseif (str_contains($pNameNorm, 'PIZZA GIGANTE')) {
+    $product['image_url'] = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80';
+} elseif (str_contains($pNameNorm, 'PIZZA BROTO')) {
+    $product['image_url'] = 'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?auto=format&fit=crop&w=800&q=80';
 }
 // ------------------------------------------------
 
