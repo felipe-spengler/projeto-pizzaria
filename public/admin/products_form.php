@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Config\Database;
 use App\Config\Session;
@@ -7,7 +7,7 @@ use App\Config\Session;
 Session::start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -23,7 +23,7 @@ if (isset($_GET['id'])) {
     $product = $stmt->fetch();
     
     if (!$product) {
-        header('Location: admin_products.php');
+        header('Location: products.php');
         exit;
     }
 }
@@ -57,16 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$categoryId, $name, $description, $price, $imageUrl, $isCustomizable, $flavorTypes, $maxFlavors, $active]);
         }
         
-        header('Location: admin_products.php');
+        header('Location: products.php');
         exit;
     }
 }
 
-include __DIR__ . '/../views/admin/layouts/header.php';
+include __DIR__ . '/../../views/admin/layouts/header.php';
 ?>
 
 <div class="mb-8">
-    <a href="admin_products.php" class="text-gray-500 hover:text-gray-700 flex items-center gap-2 mb-4">
+    <a href="products.php" class="text-gray-500 hover:text-gray-700 flex items-center gap-2 mb-4">
         <i class="fas fa-arrow-left"></i> Voltar para Produtos
     </a>
     <h1 class="font-display font-bold text-3xl text-gray-900"><?= $product ? 'Editar Produto' : 'Novo Produto' ?></h1>
@@ -170,7 +170,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
         </div>
 
         <div class="flex items-center justify-end gap-4 pt-6">
-            <a href="admin_products.php" class="px-6 py-3 text-gray-700 font-bold hover:bg-gray-100 rounded-xl transition-colors">Cancelar</a>
+            <a href="products.php" class="px-6 py-3 text-gray-700 font-bold hover:bg-gray-100 rounded-xl transition-colors">Cancelar</a>
             <button type="submit" class="px-8 py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg hover:bg-brand-700 transition-all hover:shadow-xl transform hover:-translate-y-0.5">
                 Salvar Produto
             </button>
@@ -178,4 +178,4 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     </form>
 </div>
 
-<?php include __DIR__ . '/../views/admin/layouts/footer.php'; ?>
+<?php include __DIR__ . '/../../views/admin/layouts/footer.php'; ?>

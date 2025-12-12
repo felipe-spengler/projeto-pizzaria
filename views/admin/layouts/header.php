@@ -57,39 +57,39 @@
             <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
                 <?php
                 $uri = $_SERVER['REQUEST_URI'];
-                $isDashboard = strpos($uri, 'admin.php') !== false || $uri === '/admin' || $uri === '/admin/';
-                $isOrders = strpos($uri, 'admin_orders.php') !== false;
-                $isCustomers = strpos($uri, 'admin_customers.php') !== false;
-                $isProducts = strpos($uri, 'admin_products.php') !== false;
-                $isFlavors = strpos($uri, 'admin_flavors.php') !== false;
+                $isDashboard = basename($uri) === 'index.php' || rtrim($uri, '/') === '/admin';
+                $isOrders = strpos($uri, 'orders.php') !== false;
+                $isCustomers = strpos($uri, 'customers.php') !== false;
+                $isProducts = strpos($uri, 'products.php') !== false;
+                $isFlavors = strpos($uri, 'flavors.php') !== false;
 
                 $activeClass = 'bg-brand-600 text-white shadow-lg shadow-brand-900/20';
                 $inactiveClass = 'text-gray-400 hover:bg-gray-800 hover:text-white transition-colors';
                 ?>
                 <p class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-4">Principal</p>
-                <a href="admin.php"
+                <a href="./"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $isDashboard ? $activeClass : $inactiveClass ?>">
                     <i class="fas fa-chart-pie w-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
-                <a href="admin_orders.php"
+                <a href="orders.php"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $isOrders ? $activeClass : $inactiveClass ?>">
                     <i class="fas fa-shopping-bag w-5"></i>
                     <span class="font-medium">Pedidos</span>
                 </a>
-                <a href="admin_customers.php"
+                <a href="customers.php"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $isCustomers ? $activeClass : $inactiveClass ?>">
                     <i class="fas fa-users w-5"></i>
                     <span class="font-medium">Clientes</span>
                 </a>
 
                 <p class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-8">Cardápio</p>
-                <a href="admin_products.php"
+                <a href="products.php"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $isProducts ? $activeClass : $inactiveClass ?>">
                     <i class="fas fa-list w-5"></i>
                     <span class="font-medium">Produtos</span>
                 </a>
-                <a href="admin_flavors.php"
+                <a href="flavors.php"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $isFlavors ? $activeClass : $inactiveClass ?>">
                     <i class="fas fa-utensils w-5"></i>
                     <span class="font-medium">Sabores</span>

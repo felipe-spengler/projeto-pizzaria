@@ -13,6 +13,21 @@ class ProductController
         $this->db = Database::getInstance()->getConnection();
     }
 
+    // Helper for image overrides
+    private function applyImageOverrides(&$product)
+    {
+        $pNameNorm = mb_strtoupper($product['name'] ?? '', 'UTF-8');
+        if (isset($product['category_id']) && $product['category_id'] == 2) {
+            $product['image_url'] = 'assets/images/calzone.jpg';
+        } elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
+            $product['image_url'] = 'assets/images/combo-2-pizzas.png';
+        } elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {
+            $product['image_url'] = 'assets/images/coca-cola-2l.png';
+        } elseif ($pNameNorm === 'REFRIGERANTE LATA') {
+            $product['image_url'] = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
+        }
+    }
+
     // LIST (GET)
     public function index()
     {
@@ -20,7 +35,11 @@ class ProductController
                 FROM products p 
                 JOIN categories c ON p.category_id = c.id 
                 ORDER BY p.category_id, p.name";
-        return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $products = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($products as &$p) {
+            $this->applyImageOverrides($p);
+        }
+        return $products;
     }
 
     // SHOW (GET via ID)
@@ -28,7 +47,11 @@ class ProductController
     {
         $stmt = $this->db->prepare("SELECT * FROM products WHERE id = ?");
         $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($product) {
+            $this->applyImageOverrides($product);
+        }
+        return $product;
     }
 
     // STORE (POST)

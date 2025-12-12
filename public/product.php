@@ -22,6 +22,19 @@ if (!$product) {
     exit;
 }
 
+// --- Image Override Logic (Sync with menu.php) ---
+$pNameNorm = mb_strtoupper($product['name'] ?? '', 'UTF-8');
+if ($product['category_id'] == 2) { // Calzones
+    $product['image_url'] = 'assets/images/calzone.jpg';
+} elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
+    $product['image_url'] = 'assets/images/combo-2-pizzas.png';
+} elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {
+    $product['image_url'] = 'assets/images/coca-cola-2l.png';
+} elseif ($pNameNorm === 'REFRIGERANTE LATA') {
+    $product['image_url'] = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
+}
+// ------------------------------------------------
+
 
 // --- Combo Logic Definition ---
 $isCombo = str_starts_with($product['name'], 'COMBO');

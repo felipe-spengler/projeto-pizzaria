@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Config\Database;
 use App\Config\Session;
@@ -7,7 +7,7 @@ use App\Config\Session;
 Session::start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -49,7 +49,7 @@ $orders = $controller->index($filters);
 $totalRevenue = $controller->getRevenueByPeriod($startDate, $endDate);
 $topProducts = $controller->getBestSellers($startDate, $endDate);
 
-include __DIR__ . '/../views/admin/layouts/header.php';
+include __DIR__ . '/../../views/admin/layouts/header.php';
 ?>
 
 <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
@@ -200,4 +200,4 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     </div>
 </div>
 
-<?php include __DIR__ . '/../views/admin/layouts/footer.php'; ?>
+<?php include __DIR__ . '/../../views/admin/layouts/footer.php'; ?>

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Config\Database;
 use App\Config\Session;
@@ -7,7 +7,7 @@ use App\Config\Session;
 Session::start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -19,11 +19,11 @@ $controller = new App\Controllers\FlavorController();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'])) {
     if ($_POST['action'] === 'delete') {
         $controller->delete($_POST['id']);
-        header('Location: admin_flavors.php?msg=deleted');
+        header('Location: flavors.php?msg=deleted');
         exit;
     } elseif ($_POST['action'] === 'toggle') {
         $controller->toggleAvailability($_POST['id']);
-        header('Location: admin_flavors.php');
+        header('Location: flavors.php');
         exit;
     }
 }
@@ -43,7 +43,7 @@ $stmt = $db->prepare($sql);
 $stmt->execute($params);
 $flavors = $stmt->fetchAll();
 
-include __DIR__ . '/../views/admin/layouts/header.php';
+include __DIR__ . '/../../views/admin/layouts/header.php';
 ?>
 
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -62,7 +62,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                 <option value="refrigerante" <?= $typeFilter === 'refrigerante' ? 'selected' : '' ?>>Bebidas</option>
             </select>
         </form>
-        <a href="admin_flavors_form.php"
+        <a href="flavors_form.php"
             class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap">
             <i class="fas fa-plus"></i> Novo Sabor
         </a>
@@ -129,7 +129,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="admin_flavors_form.php?id=<?= $flavor['id'] ?>"
+                                <a href="flavors_form.php?id=<?= $flavor['id'] ?>"
                                     class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -152,4 +152,4 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     </div>
 </div>
 
-<?php include __DIR__ . '/../views/admin/layouts/footer.php'; ?>
+<?php include __DIR__ . '/../../views/admin/layouts/footer.php'; ?>

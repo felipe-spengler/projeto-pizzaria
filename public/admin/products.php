@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Config\Database;
 use App\Config\Session;
@@ -7,7 +7,7 @@ use App\Config\Session;
 Session::start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -17,11 +17,11 @@ $controller = new App\Controllers\ProductController();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'])) {
     if ($_POST['action'] === 'delete') {
         $controller->delete($_POST['id']);
-        header('Location: admin_products.php?msg=deleted');
+        header('Location: products.php?msg=deleted');
         exit;
     } elseif ($_POST['action'] === 'toggle_active') {
         $controller->toggleActive($_POST['id']);
-        header('Location: admin_products.php');
+        header('Location: products.php');
         exit;
     }
 }
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'
 // Fetch Products
 $products = $controller->index();
 
-include __DIR__ . '/../views/admin/layouts/header.php';
+include __DIR__ . '/../../views/admin/layouts/header.php';
 ?>
 
 <div class="flex justify-between items-center mb-8">
@@ -37,7 +37,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
         <h1 class="font-display font-bold text-3xl text-gray-900">Cardápio - Produtos</h1>
         <p class="text-gray-500 text-lg">Gerencie os produtos do cardápio.</p>
     </div>
-    <a href="admin_products_form.php"
+    <a href="products_form.php"
         class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl flex items-center gap-2">
         <i class="fas fa-plus"></i> Novo Produto
     </a>
@@ -116,7 +116,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="admin_products_form.php?id=<?= $product['id'] ?>"
+                                <a href="products_form.php?id=<?= $product['id'] ?>"
                                     class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -139,4 +139,4 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     </div>
 </div>
 
-<?php include __DIR__ . '/../views/admin/layouts/footer.php'; ?>
+<?php include __DIR__ . '/../../views/admin/layouts/footer.php'; ?>

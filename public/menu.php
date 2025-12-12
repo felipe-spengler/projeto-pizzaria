@@ -56,18 +56,18 @@ include __DIR__ . '/../views/layouts/header.php';
                         <a href="product.php?id=<?= $product['id'] ?>" class="relative h-40 sm:h-48 overflow-hidden bg-gray-100 block">
                             <?php
                             $imgUrl = $product['image_url'];
-                            if (str_starts_with($imgUrl, 'assets/')) {
-                                switch ($category['name']) {
-                                    case 'Calzones':
-                                        $imgUrl = 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80';
-                                        break;
-                                    case 'Bebidas':
-                                        $imgUrl = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
-                                        break;
-                                    default:
-                                        $imgUrl = 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80';
-                                        break;
-                                }
+                            // Override images based on user request
+                            $pNameNorm = mb_strtoupper($product['name'] ?? '', 'UTF-8');
+                            
+                            if ($category['name'] === 'Calzones') {
+                                $imgUrl = 'assets/images/calzone.jpg';
+                            } elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
+                                $imgUrl = 'assets/images/combo-2-pizzas.png';
+                            } elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {
+                                $imgUrl = 'assets/images/coca-cola-2l.png';
+                            } elseif ($pNameNorm === 'REFRIGERANTE LATA') {
+                                // Use the image previously used for 600ml
+                                $imgUrl = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
                             }
                             ?>
                             <img src="<?= $imgUrl ?>" alt="<?= $product['name'] ?>"

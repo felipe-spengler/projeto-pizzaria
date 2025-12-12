@@ -301,21 +301,21 @@ INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_custo
 
 -- Calzones
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
-(2, 'Calzone (30cm)', 'Escolha 1 sabor do cardápio de calzones.', 55.00, 1, 1, 'calzone', 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80');
+(2, 'Calzone (30cm)', 'Escolha 1 sabor do cardápio de calzones.', 55.00, 1, 1, 'calzone', 'assets/images/calzone.jpg');
 
 -- Combos
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `allowed_flavor_types`, `image_url`) VALUES
 (3, 'COMBO P', 'Pizza P + Broto Doce + Kuat 2L.', 76.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
 (3, 'COMBO G', 'Pizza G + Broto Doce + Kuat 2L.', 95.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
 (3, 'COMBO GG', 'Pizza GG + Broto Doce + Kuat 2L.', 113.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80'),
-(3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 1, 'salgado,doce,refrigerante', 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=800&q=80');
+(3, 'COMBO 2 PIZZA G', 'Duas Pizzas G + Kuat 2L.', 135.00, 1, 'salgado,doce,refrigerante', 'assets/images/combo-2-pizzas.png');
 
 -- Bebidas (REORGANIZADAS)
 INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_customizable`, `max_flavors`, `allowed_flavor_types`, `image_url`) VALUES
-(4, 'Refrigerante 2L', 'Escolha o sabor.', 15.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
-(4, 'Refrigerante 1L', 'Escolha o sabor.', 10.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
+(4, 'Refrigerante 2L', 'Escolha o sabor.', 15.00, 1, 1, 'refrigerante', 'assets/images/coca-cola-2l.png'),
+(4, 'Refrigerante 1L', 'Escolha o sabor.', 10.00, 1, 1, 'refrigerante', 'assets/images/coca-cola-2l.png'),
 (4, 'Refrigerante 600ml', 'Escolha o sabor.', 8.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
-(4, 'Refrigerante Lata', '350ml. Escolha o sabor.', 6.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?auto=format&fit=crop&w=800&q=80'),
+(4, 'Refrigerante Lata', '350ml. Escolha o sabor.', 6.00, 1, 1, 'refrigerante', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80'),
 (4, 'Cerveja Lata', '350ml. Escolha a marca. (+18 anos)', 6.00, 1, 1, 'cerveja', 'https://images.unsplash.com/photo-1659714850889-7603c9d18721?auto=format&fit=crop&w=800&q=80'),
 (4, 'Cerveja Long Neck', '330ml. Escolha a marca. (+18 anos)', 9.50, 1, 1, 'cerveja', 'https://images.unsplash.com/photo-1663431326402-af4eb05a6977?auto=format&fit=crop&w=800&q=80');
 

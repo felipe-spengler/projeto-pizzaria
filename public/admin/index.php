@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Config\Database;
 use App\Config\Session;
@@ -9,14 +9,14 @@ Session::start();
 
 // Security Check
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
 // Logout Logic
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
     // Mark as viewed when interacting
     $stmt = $db->prepare("UPDATE orders SET status = ?, viewed = TRUE WHERE id = ?");
     $stmt->execute([$status, $orderId]);
-    header('Location: admin.php');
+    header('Location: ./');
     exit;
 }
 
@@ -56,7 +56,7 @@ if (isset($_GET['mark_viewed'])) {
     $orderId = $_GET['mark_viewed'];
     $stmt = $db->prepare("UPDATE orders SET viewed = TRUE WHERE id = ?");
     $stmt->execute([$orderId]);
-    header('Location: admin.php');
+    header('Location: ./');
     exit;
 }
 
@@ -71,7 +71,7 @@ if (isset($_GET['print'])) {
     exit;
 }
 
-include __DIR__ . '/../views/admin/layouts/header.php';
+include __DIR__ . '/../../views/admin/layouts/header.php';
 ?>
 
 <!-- Your existing Dashboard HTML here -->
@@ -229,7 +229,9 @@ include __DIR__ . '/../views/admin/layouts/header.php';
 </audio>
 
 <div class="fixed bottom-4 left-4 z-50">
-    <button onclick="playNotificationSound(false)" class="bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-brand-600 transition-colors" title="Testar Som da Campainha">
+    <button onclick="playNotificationSound(false)"
+        class="bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-brand-600 transition-colors"
+        title="Testar Som da Campainha">
         <i class="fas fa-volume-up"></i>
     </button>
 </div>
@@ -245,7 +247,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     // Função para inicializar áudio (requer interação do usuário primeiro)
     function initAudio() {
         if (audioInitialized) return Promise.resolve();
-        
+
         // Tenta tocar e parar imediatamente para liberar o audio context do navegador
         // Isso é crucial para navegadores mobile e políticas de autoplay rigorosas
         return audio.play().then(() => {
@@ -262,7 +264,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     // Função para tocar o som
     function playNotificationSound(loop = false) {
         // Se já foi inicializado ou estamos num evento de clique (confiamos que initAudio vai resolver ou já resolveu)
-        
+
         // Primeiro garantimos a inicialização
         initAudio().then(() => {
             // Configura Loop
@@ -338,7 +340,7 @@ include __DIR__ . '/../views/admin/layouts/header.php';
                             </button>
                         </div>
                     `;
-                    
+
                     document.body.appendChild(overlay);
 
                     // Adiciona style blink global para chamar atencao no titulo da aba
@@ -352,14 +354,14 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     }
 
     // Função global para aceitar o pedido
-    window.acknowledgeOrder = function() {
+    window.acknowledgeOrder = function () {
         stopNotificationSound();
         const overlay = document.getElementById('newOrderOverlay');
         if (overlay) overlay.remove();
-        
+
         // Limpa intervalo do titulo
         if (window.blinkInterval) clearInterval(window.blinkInterval);
-        
+
         // Reload para mostrar o novo pedido
         location.reload();
     };
@@ -377,4 +379,4 @@ include __DIR__ . '/../views/admin/layouts/header.php';
     }
 </script>
 
-<?php include __DIR__ . '/../views/admin/layouts/footer.php'; ?>
+<?php include __DIR__ . '/../../views/admin/layouts/footer.php'; ?>
