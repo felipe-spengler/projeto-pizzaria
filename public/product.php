@@ -162,7 +162,13 @@ include __DIR__ . '/../views/layouts/header.php';
                                         <?= $index + 1 ?>
                                     </span>
                                     <div class="flex flex-col">
-                                        <span><?= $step['title'] ?></span>
+                                        <span class="flex items-center gap-2">
+                                            <?= $step['title'] ?>
+                                            <span id="counter-display-<?= $index ?>"
+                                                class="text-sm font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full">
+                                                (0/<?= $step['max'] ?>)
+                                            </span>
+                                        </span>
                                         <span
                                             class="text-xs sm:text-sm font-normal text-gray-500 tracking-wide uppercase">Escolha
                                             até <?= $step['max'] ?> sabor(es)</span>
@@ -376,6 +382,13 @@ include __DIR__ . '/../views/layouts/header.php';
                     if (checkedCount > max) {
                         cb.checked = false;
                         // Optional: Toast message here
+                    }
+
+                    // Update counter display
+                    const finalCount = step.querySelectorAll(`.flavor-checkbox[data-step="${stepIndex}"]:checked`).length;
+                    const counterEl = document.getElementById(`counter-display-${stepIndex}`);
+                    if (counterEl) {
+                        counterEl.innerText = `(${finalCount}/${max})`;
                     }
                 });
             });

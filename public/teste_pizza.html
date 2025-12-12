@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montar Pizza - Realista</title>
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --dark: #2C3E50;
+            --light: #F7F9FC;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #fff5f5, #fff);
+            min-height: 100vh;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            min-height: 85vh;
+            background: var(--glass);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+            margin: 20px;
+        }
+
+        /* Left Side - Visualizer */
+        .visualizer-section {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px;
+            overflow: hidden;
+        }
+
+        /* Updated Visualizer Styles */
+        .pizza-plate {
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            padding: 20px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 10;
+        }
+
+        .pizza-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 50%;
+            background: radial-gradient(circle, #e6cba5 0%, #d4b58e 80%, #c49a6c 100%);
+            overflow: hidden;
+        }
+
+        .overlay-shadow {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            z-index: 100;
+            /* Always on top */
+        }
+
+        .pizza-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.3s ease;
+            z-index: 20;
+            /* Above base */
+        }
+
+        .price-tag {
+            margin-top: 40px;
+            background: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Right Side - Controls */
+        .controls-section {
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #2C3E50, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .flavor-slots {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .slot {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            border: 2px dashed #bdc3c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: #fff;
+            font-weight: bold;
+            color: #bdc3c7;
+            overflow: hidden;
+        }
+
+        .slot.active {
+            border-color: var(--primary);
+            border-style: solid;
+            background: #fff;
+        }
+
+        .slot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slot-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+        }
+
+        .flavor-card {
+            background: white;
+            border-radius: 16px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #eee;
+            text-align: center;
+        }
+
+        .flavor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            border-color: var(--primary);
+        }
+
+        .flavor-thumb {
+            width: 100%;
+            height: 100px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            object-fit: cover;
+            background-color: #f0f0f0;
+        }
+
+        .slice-btn {
+            padding: 8px 16px;
+            border: 1px solid #bdc3c7;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.2s;
+        }
+
+        .slice-btn.active,
+        .slice-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .config-bar {
+            margin-bottom: 25px;
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: auto;
+            }
+
+            .pizza-plate {
+                width: 300px;
+                height: 300px;
+            }
+
+            .visualizer-section {
+                padding: 20px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Visualizer -->
+        <div class="visualizer-section">
+            <div class="pizza-plate">
+                <div class="pizza-container" id="pizzaContainer">
+                    <div class="overlay-shadow"></div>
+                    <div id="pizzaLayers"></div>
+                </div>
+            </div>
+            <div class="price-tag">
+                R$ <span id="totalPrice">0,00</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-section">
+            <h1 style="font-size: 2.2rem;">Montar Pizza</h1>
+            <p class="subtitle">Personalize sua pizza com até 4 sabores.</p>
+
+            <div class="config-bar">
+                <span style="font-weight: 600; color: var(--dark);">Divisão:</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="slice-btn active" onclick="setSlices(1)">1</button>
+                    <button class="slice-btn" onclick="setSlices(2)">2</button>
+                    <button class="slice-btn" onclick="setSlices(3)">3</button>
+                    <button class="slice-btn" onclick="setSlices(4)">4</button>
+                </div>
+            </div>
+
+            <!-- Slots Display -->
+            <div style="margin-bottom: 10px; font-weight: 600; font-size: 0.9rem;">Sabores Selecionados:</div>
+            <div class="flavor-slots" id="slotsContainer">
+                <!-- Will be populated by JS -->
+            </div>
+
+            <h3 style="margin: 24px 0 16px;">Cardápio</h3>
+            <div class="menu-grid">
+                <!-- Flavors -->
+                <div class="flavor-card" onclick="addFlavor('calabresa', 45, 'Calabresa')">
+                    <img src="assets/pzimages/calabresa.png" class="flavor-thumb" alt="Calabresa">
+                    <div class="flavor-name">Calabresa</div>
+                    <div class="flavor-price">R$ 45,00</div>
+                </div>
+                <div class="flavor-card" onclick="addFlavor('quatro-queijos', 52, '4 Queijos')">
+                    <img src="assets/pzimages/quatro-queijos.png" class="flavor-thumb" alt="4 Queijos">
+                    <div class="flavor-name">4 Queijos</div>
+                    <div class="flavor-price">R$ 52,00</div>
+                </div>
+                <div class="flavor-card" onclick="addFlavor('margherita', 48, 'Margherita')">
+                    <img src="assets/pzimages/margherita.png" class="flavor-thumb" alt="Margherita">
+                    <div class="flavor-name">Margherita</div>
+                    <div class="flavor-price">R$ 48,00</div>
+                </div>
+                <div class="flavor-card" onclick="addFlavor('portuguesa', 50, 'Portuguesa')">
+                    <img src="assets/pzimages/portuguesa.png" class="flavor-thumb" alt="Portuguesa">
+                    <div class="flavor-name">Portuguesa</div>
+                    <div class="flavor-price">R$ 50,00</div>
+                </div>
+                <div class="flavor-card" onclick="addFlavor('frango', 46, 'Frango')">
+                    <img src="assets/pzimages/frango.png" class="flavor-thumb" alt="Frango">
+                    <div class="flavor-name">Frango</div>
+                    <div class="flavor-price">R$ 46,00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentMaxSlices = 1;
+        let selectedFlavors = [];
+
+        const flavorsData = {
+            'calabresa': { img: 'assets/pzimages/calabresa.png' },
+            'quatro-queijos': { img: 'assets/pzimages/quatro-queijos.png' },
+            'margherita': { img: 'assets/pzimages/margherita.png' },
+            'portuguesa': { img: 'assets/pzimages/portuguesa.png' },
+            'frango': { img: 'assets/pzimages/frango.png' }
+        };
+
+        function setSlices(num) {
+            currentMaxSlices = num;
+
+            const oldFlavors = selectedFlavors.filter(f => f !== null);
+            selectedFlavors = new Array(num).fill(null);
+
+            for (let i = 0; i < oldFlavors.length && i < num; i++) {
+                selectedFlavors[i] = oldFlavors[i];
+            }
+
+            document.querySelectorAll('.slice-btn').forEach((btn, index) => {
+                if (index + 1 === num) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            updateUI();
+        }
+
+        function addFlavor(id, price, name) {
+            const emptyIndex = selectedFlavors.findIndex(f => f === null);
+
+            if (emptyIndex !== -1) {
+                selectedFlavors[emptyIndex] = { id, price, name };
+                updateUI();
+            } else {
+                const container = document.getElementById('slotsContainer');
+                container.style.animation = 'shake 0.5s';
+                setTimeout(() => container.style.animation = '', 500);
+            }
+        }
+
+        function removeFlavor(index) {
+            selectedFlavors[index] = null;
+            updateUI();
+        }
+
+        function updateUI() {
+            renderPizza();
+            renderSlots();
+            updatePrice();
+        }
+
+        function renderPizza() {
+            const container = document.getElementById('pizzaLayers');
+            container.innerHTML = ''; // Clear existing
+
+            const sliceAngle = 360 / currentMaxSlices;
+
+            selectedFlavors.forEach((flavor, index) => {
+                if (!flavor) return; // Skip empty slots
+
+                const imgPath = flavorsData[flavor.id].img;
+
+                const img = document.createElement('img');
+                img.src = imgPath;
+                img.className = 'pizza-layer';
+                // Remove timestamp in prod, but keeps here for test
+
+                img.onerror = function () {
+                    console.error("Erro ao carregar imagem:", imgPath);
+                    // alert("Não foi possível carregar a imagem: " + imgPath);
+                };
+
+                const startDeg = index * sliceAngle;
+                const endDeg = startDeg + sliceAngle;
+
+                if (currentMaxSlices > 1) {
+                    const mask = `conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent \${startDeg}deg, black \${startDeg}deg, black \${endDeg}deg, transparent \${endDeg}deg)`;
+
+                    img.style.webkitMaskImage = mask;
+                    img.style.maskImage = mask;
+                }
+
+                container.appendChild(img);
+            });
+        }
+
+        function renderSlots() {
+            const slotsContainer = document.getElementById('slotsContainer');
+            slotsContainer.innerHTML = '';
+
+            for (let i = 0; i < currentMaxSlices; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+
+                const flavor = selectedFlavors[i];
+                if (flavor) {
+                    slot.classList.add('active');
+                    const imgPath = flavorsData[flavor.id].img;
+                    slot.innerHTML = `
+                        <img src="\${imgPath}" class="slot-img">
+                        <div class="slot-remove" onclick="removeFlavor(\${i})">×</div>
+                    `;
+                } else {
+                    slot.innerText = i + 1;
+                    const firstEmpty = selectedFlavors.findIndex(f => f === null);
+                    if (firstEmpty === i) {
+                        slot.style.borderColor = 'var(--secondary)';
+                        slot.style.borderStyle = 'dashed';
+                        slot.style.background = '#f0fbfb';
+                        slot.style.color = 'var(--secondary)';
+                    }
+                }
+
+                slotsContainer.appendChild(slot);
+            }
+        }
+
+        function updatePrice() {
+            const priceEl = document.getElementById('totalPrice');
+            const validFlavors = selectedFlavors.filter(f => f !== null);
+
+            if (validFlavors.length === 0) {
+                // Show base dough only
+                priceEl.innerText = '0,00';
+                return;
+            }
+
+            const total = validFlavors.reduce((sum, f) => sum + f.price, 0);
+            const avg = total / validFlavors.length;
+
+            priceEl.innerText = avg.toFixed(2).replace('.', ',');
+        }
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        `;
+        document.head.appendChild(style);
+
+        // Initial render
+        setSlices(1);
+
+    </script>
+</body>
+
+</html>
