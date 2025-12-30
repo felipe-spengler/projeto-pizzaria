@@ -16,7 +16,7 @@ class Database
         $db_name = $_ENV['DB_NAME'] ?? 'pizzaria';
         $username = $_ENV['DB_USER'] ?? 'pizzaria';
         // AQUI: Ajuste o nome da variável de ambiente para ser lida corretamente
-        $password = $_ENV['DB_PASSWORD'] ?? 'password';
+        $password = $_ENV['DB_PASSWORD'] ?? $_ENV['DB_PASS'] ?? 'secret123';
 
         try {
             $this->conn = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8mb4", $username, $password);

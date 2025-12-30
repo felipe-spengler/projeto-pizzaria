@@ -1,5 +1,15 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
+
+// Analytics Tracker
+try {
+    if (class_exists('App\Services\AnalyticsLogger')) {
+        \App\Services\AnalyticsLogger::logAccess();
+    }
+} catch (\Throwable $th) {
+    // Silently fail if analytics crashes
+}
+
 include __DIR__ . '/../views/layouts/header.php';
 ?>
 
