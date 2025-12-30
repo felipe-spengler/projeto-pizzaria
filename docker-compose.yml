@@ -6,9 +6,12 @@ services:
       context: .
       dockerfile: Dockerfile
     image: pizzaria-app
-    # app nao precisa expor porta para o host, o coolify proxy resolve
-    volumes:
-      - .:/var/www/html
+    # app nao precisa expor porta para o host,
+    ports:
+      - "5000:5000"
+    # Em produção, usaremos o código dentro da imagem, não via volume montado
+    # volumes:
+    #   - .:/var/www/html
     environment:
       - APACHE_DOCUMENT_ROOT=/var/www/html/public
       - DB_HOST=mysql
