@@ -320,3 +320,22 @@ INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `is_custo
 (4, 'Cerveja Long Neck', '330ml. Escolha a marca. (+18 anos)', 9.50, 1, 1, 'cerveja', 'https://images.unsplash.com/photo-1663431326402-af4eb05a6977?auto=format&fit=crop&w=800&q=80');
 
 COMMIT;
+
+-- --------------------------------------------------------
+-- Table structure for table access_logs
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS access_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ip_address VARCHAR(45) NOT NULL,
+  city VARCHAR(100) DEFAULT NULL,
+  region VARCHAR(100) DEFAULT NULL,
+  country VARCHAR(100) DEFAULT NULL,
+  device_type ENUM('desktop', 'mobile', 'tablet') DEFAULT 'desktop',
+  os VARCHAR(50) DEFAULT NULL,
+  browser VARCHAR(50) DEFAULT NULL,
+  page_url VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (created_at),
+  INDEX (ip_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
