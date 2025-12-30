@@ -116,10 +116,11 @@ include __DIR__ . '/../views/layouts/header.php';
 ?>
 
 <div class="max-w-7xl mx-auto px-0 sm:px-4 lg:px-8 py-0 sm:py-8 lg:py-12 pb-32 sm:pb-8">
-    <div class="bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden border-0 sm:border border-gray-100">
+    <div class="bg-white rounded-none sm:rounded-3xl shadow-xl border-0 sm:border border-gray-100">
         <div class="grid grid-cols-1 lg:grid-cols-2">
             <!-- Image Side -->
-            <div class="h-64 sm:h-80 lg:h-auto relative bg-gray-100">
+            <div
+                class="h-64 sm:h-80 lg:h-auto relative bg-gray-100 sm:rounded-t-3xl lg:rounded-tr-none lg:rounded-l-3xl overflow-hidden">
                 <?php if ($product['image_url']): ?>
                     <img src="<?= $product['image_url'] ?>" alt="<?= $product['name'] ?>"
                         class="w-full h-full object-cover">
@@ -353,7 +354,8 @@ include __DIR__ . '/../views/layouts/header.php';
 
             // Scroll to top of wizard on mobile
             if (window.innerWidth < 1024) {
-                // document.getElementById('wizard-steps').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                // Try to scroll to the counter element to make sure it's visible, minus header offset
+                // But don't force it if user is just clicking checkboxes
             }
         }
 
@@ -458,4 +460,4 @@ include __DIR__ . '/../views/layouts/header.php';
     }
 </style>
 
-<?php // include __DIR__ . '/../views/layouts/footer.php'; ?>
+<?php include __DIR__ . '/../views/layouts/footer.php'; ?>
