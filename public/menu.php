@@ -62,9 +62,9 @@ include __DIR__ . '/../views/layouts/header.php';
 
                             // 1. Calzone & Combo Swap
                             if ($category['name'] === 'Calzones') {
-                                $imgUrl = 'assets/images/calzone-real.png';
+                                $imgUrl = 'assets/images/calzone.jpg';
                             } elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
-                                $imgUrl = 'assets/images/combo-real.jpg';
+                                $imgUrl = 'assets/images/combo-2-pizzas.png';
                             }
                             // 2. Beverages
                             elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {

@@ -25,9 +25,9 @@ if (!$product) {
 // --- Image Override Logic (Sync with menu.php) ---
 $pNameNorm = mb_strtoupper($product['name'] ?? '', 'UTF-8');
 if ($product['category_id'] == 2) { // Calzones
-    $product['image_url'] = 'assets/images/calzone-real.png';
+    $product['image_url'] = 'assets/images/calzone.jpg';
 } elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
-    $product['image_url'] = 'assets/images/combo-real.jpg';
+    $product['image_url'] = 'assets/images/combo-2-pizzas.png';
 } elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {
     $product['image_url'] = 'assets/images/coca-cola-2l.png';
 } elseif ($pNameNorm === 'REFRIGERANTE LATA') {
@@ -352,23 +352,20 @@ include __DIR__ . '/../views/layouts/header.php';
             // Update Progress
             updateProgress();
 
-            // Scroll to top of wizard on mobile
-            if (window.innerWidth < 1024) {
-                // Try to scroll to the counter element to make sure it's visible, minus header offset
-                // But don't force it if user is just clicking checkboxes
+            // SCRIPT ADJUSTMENT: Always scroll to the top of the wizard steps container
+            // This ensures user sees the top of the list, not the middle
+            const wizardContainer = document.getElementById('wizard-steps');
+            if (wizardContainer) {
+                // Calculate position relative to viewport to avoid jumping too far up if already visible
+                const rect = wizardContainer.getBoundingClientRect();
+                const offset = 100; // Buffer for sticky header
+
+                // Only scroll if we are well below the top of the container
+                window.scrollTo({
+                    top: window.scrollY + rect.top - offset,
+                    behavior: 'smooth'
+                });
             }
-        }
-
-        function updateProgress() {
-            if (!progressBar) return;
-            // Calculations for display
-            // Step 0 of 3 -> 0/3 * 100 = 0%? No. Let's start with some progress.
-            // Let's say: 1/3, 2/3, 3/3.
-            const percentage = Math.round(((currentStep + 1) / totalSteps) * 100);
-
-            progressBar.style.width = `${percentage}%`;
-            stepProgressText.innerText = `${percentage}% Completo`;
-            stepCounter.innerText = `Etapa ${currentStep + 1} de ${totalSteps}`;
         }
 
         function validateStep(index) {
@@ -378,9 +375,19 @@ include __DIR__ . '/../views/layouts/header.php';
 
             if (checkboxes.length === 0) {
                 errorMsg.classList.remove('hidden');
+
+                // Scroll error into view if not visible
+                errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
                 // Shake validation
-                step.classList.add('animate-pulse');
-                setTimeout(() => step.classList.remove('animate-pulse'), 500);
+                step.classList.add('animate-shake');
+                setTimeout(() => step.classList.remove('animate-shake'), 500);
+
+                // Also shake the next button to indicate failure
+                const btn = document.getElementById('nextBtn');
+                btn.classList.add('bg-red-600');
+                setTimeout(() => btn.classList.remove('bg-red-600'), 200);
+
                 return false;
             }
             errorMsg.classList.add('hidden');
@@ -438,6 +445,26 @@ include __DIR__ . '/../views/layouts/header.php';
 
     .animate-fade-in-up {
         animation: fadeInUp 0.5s ease-out;
+    }
+
+    @keyframes shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
+    }
+
+    .animate-shake {
+        animation: shake 0.4s ease-in-out;
     }
 
     /* Custom Scrollbar for list */

@@ -25,8 +25,8 @@
                         class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-brand-600 hover:text-white transition-all transform hover:-translate-y-1">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#"
-                        class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-brand-600 hover:text-white transition-all transform hover:-translate-y-1">
+                    <a href="https://wa.me/5545998472907" target="_blank"
+                        class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all transform hover:-translate-y-1">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                 </div>
@@ -47,23 +47,38 @@
                 </ul>
             </div>
 
-            <!-- Contact -->
-            <div class="col-span-1 md:col-span-2">
-                <h3 class="font-display font-bold text-lg mb-6">Contato</h3>
-                <ul class="space-y-4 text-gray-400">
-                    <li class="flex items-start gap-3">
-                        <i class="fas fa-map-marker-alt mt-1 text-brand-500"></i>
-                        <span>Rua das Pizzas, 123<br>Centro, São Paulo - SP</span>
-                    </li>
-                    <li class="flex items-center gap-3">
-                        <i class="fas fa-phone-alt text-brand-500"></i>
-                        <span>(11) 99999-9999</span>
-                    </li>
-                    <li class="flex items-center gap-3">
-                        <i class="fas fa-envelope text-brand-500"></i>
-                        <span>contato@casanovapizzaria.com</span>
-                    </li>
-                </ul>
+            <!-- Contact & Hours -->
+            <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="font-display font-bold text-lg mb-6">Contato</h3>
+                    <ul class="space-y-4 text-gray-400">
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-map-marker-alt mt-1 text-brand-500"></i>
+                            <a href="https://maps.google.com/?q=R.+São+Francisco,+552+-+Jardim+Porto+Alegre,+Toledo+-+PR"
+                                target="_blank" class="hover:text-white transition-colors">
+                                R. São Francisco, 552<br>Jardim Porto Alegre<br>Toledo - PR, 85906-110
+                            </a>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-phone-alt text-brand-500"></i>
+                            <a href="tel:+5545998472907" class="hover:text-white transition-colors">(45) 99847-2907</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-display font-bold text-lg mb-6">Horários</h3>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li class="flex justify-between">
+                            <span>Segunda-feira</span>
+                            <span class="text-brand-500 font-bold">Fechado</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Terça a Domingo</span>
+                            <span>18:30 – 23:30</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
