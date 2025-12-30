@@ -1,0 +1,16 @@
+{
+    "name": "pizzaria-frontend",
+    "version": "1.0.0",
+    "description": "Frontend assets for Pizzaria System",
+    "main": "index.js",
+    "scripts": {
+        "build:css": "tailwindcss -i ./src/css/input.css -o ./public/assets/css/style.css --minify",
+        "watch:css": "tailwindcss -i ./src/css/input.css -o ./public/assets/css/style.css --watch"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "tailwindcss": "^3.4.1"
+    }
+}

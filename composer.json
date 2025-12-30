@@ -1,0 +1,23 @@
+{
+    "name": "felipe/pizzaria-system",
+    "description": "Sistema de Pedidos para Pizzaria",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "vlucas/phpdotenv": "^5.5",
+        "google/apiclient": "^2.15"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Felipe Spengler",
+            "email": "felipe@example.com"
+        }
+    ]
+}

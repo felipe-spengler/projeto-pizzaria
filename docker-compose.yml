@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pizzaria-app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html/public
+      - DB_HOST=mysql
+      - DB_NAME=pizzaria
+      - DB_USER=pizzaria_user
+      - DB_PASS=secret123
+    depends_on:
+      - mysql
+    networks:
+      - pizzaria-net
+
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: pizzaria
+      MYSQL_USER: pizzaria_user
+      MYSQL_PASSWORD: secret123
+      MYSQL_ROOT_PASSWORD: root_secret
+    # Dados Persistentes: O volume mysql_data garante que os dados não sejam perdidos
+    # mesmo que você recrie os containers.
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - pizzaria-net
+    ports:
+      - "3307:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mysql:db
+    ports:
+      - "5001:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: root_secret
+    networks:
+      - pizzaria-net
+
+volumes:
+  mysql_data:
+
+
+networks:
+  pizzaria-net:
+    driver: bridge
