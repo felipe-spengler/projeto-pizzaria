@@ -32,7 +32,8 @@ RUN if [ -f composer.lock ]; then \
     composer install --no-interaction --optimize-autoloader --no-scripts; \
     fi
 
-# Copiar resto dos arquivos (só esta parte será reconstruída quando código mudar)
+# Quebra de Cache Forçada (Mude a data para forçar rebuild)
+ARG CACHEBUST=2025-12-30_1
 COPY . .
 
 # Rodar scripts do composer após copiar tudo
