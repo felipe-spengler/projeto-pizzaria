@@ -83,6 +83,47 @@
             menu.classList.toggle('hidden');
         });
     }
+
+    // Analytics (Async)
+    (async () => {
+        try {
+            // Tenta obter localização básica (timeout de 1.5s pra ser rápido)
+            const locationController = new AbortController();
+            const locationTimeout = setTimeout(() => locationController.abort(), 1500);
+
+            let extraData = {};
+
+            try {
+                // API Pública Gratuita (ipapi.co) - Roda no Cliente, não no Backend
+                const response = await fetch('https://ipapi.co/json/', { signal: locationController.signal });
+                const loc = await response.json();
+                clearTimeout(locationTimeout);
+
+                if (loc && !loc.error) {
+                    extraData = {
+                        city: loc.city,
+                        region: loc.region,
+                        country: loc.country_name
+                    };
+                }
+            } catch (err) {
+                // Se der erro ou timeout, ignora e manda sem localização
+            }
+
+            // Manda pro nosso Backend salvar
+            await fetch('/api/analytics.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: window.location.pathname,
+                    ...extraData
+                })
+            });
+
+        } catch (e) {
+            console.error('Analytics error', e);
+        }
+    })();
 </script>
 </body>
 
