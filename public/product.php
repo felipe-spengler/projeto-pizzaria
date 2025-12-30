@@ -115,8 +115,8 @@ if (!empty($comboSteps)) {
 include __DIR__ . '/../views/layouts/header.php';
 ?>
 
-<div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 lg:py-12">
-    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+<div class="max-w-7xl mx-auto px-0 sm:px-4 lg:px-8 py-0 sm:py-8 lg:py-12 pb-32 sm:pb-8">
+    <div class="bg-white rounded-none sm:rounded-3xl shadow-xl overflow-hidden border-0 sm:border border-gray-100">
         <div class="grid grid-cols-1 lg:grid-cols-2">
             <!-- Image Side -->
             <div class="h-64 sm:h-80 lg:h-auto relative bg-gray-100">
@@ -179,7 +179,7 @@ include __DIR__ . '/../views/layouts/header.php';
                                 data-max="<?= $step['max'] ?>" data-step-index="<?= $index ?>">
 
                                 <h3
-                                    class="font-bold text-gray-900 text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-3 pb-4 border-b border-gray-100">
+                                    class="sticky top-20 z-40 bg-white/95 backdrop-blur-sm font-bold text-gray-900 text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-3 py-4 border-b border-gray-100 shadow-sm">
                                     <span
                                         class="bg-brand-100 text-brand-600 w-8 h-8 sm:w-10 sm:h-10 rounded-xl inline-flex items-center justify-center text-sm sm:text-base font-bold shadow-sm ring-4 ring-white">
                                         <?= $index + 1 ?>
@@ -198,8 +198,7 @@ include __DIR__ . '/../views/layouts/header.php';
                                     </div>
                                 </h3>
 
-                                <div
-                                    class="grid grid-cols-1 gap-2 sm:gap-3 max-h-[50vh] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar pb-2">
+                                <div class="grid grid-cols-1 gap-2 sm:gap-3 pr-1 sm:pr-2 pb-2">
                                     <?php foreach ($availableFlavors as $flavor): ?>
                                         <label
                                             class="group relative flex items-start p-3 sm:p-4 rounded-xl border-2 border-transparent bg-gray-50 cursor-pointer hover:bg-white hover:border-brand-200 hover:shadow-md transition-all select-none">
@@ -251,7 +250,7 @@ include __DIR__ . '/../views/layouts/header.php';
 
                     <!-- Wizard Controls -->
                     <div
-                        class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-100 bg-white sticky bottom-0 z-10 pb-2">
+                        class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] flex flex-col sm:flex-row gap-3 sm:gap-4 sm:relative sm:shadow-none sm:p-0 sm:pt-6 sm:border-0 sm:bg-transparent transition-all">
                         <!-- Navigation Buttons -->
                         <div class="flex w-full gap-3 transition-opacity duration-300" id="nav-buttons-container">
                             <button type="button" id="prevBtn" onclick="changeStep(-1)"
@@ -459,4 +458,4 @@ include __DIR__ . '/../views/layouts/header.php';
     }
 </style>
 
-<?php include __DIR__ . '/../views/layouts/footer.php'; ?>
+<?php // include __DIR__ . '/../views/layouts/footer.php'; ?>

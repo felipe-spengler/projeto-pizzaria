@@ -36,7 +36,8 @@ include __DIR__ . '/../views/layouts/header.php';
 
     <?php foreach ($categories as $category): ?>
         <div id="cat-<?= $category['id'] ?>" class="mb-8 sm:mb-16 scroll-mt-24">
-            <h2 class="font-display font-bold text-xl sm:text-2xl text-gray-900 mb-4 sm:mb-8 flex items-center gap-3 px-2 sm:px-0">
+            <h2
+                class="font-display font-bold text-xl sm:text-2xl text-gray-900 mb-4 sm:mb-8 flex items-center gap-3 px-2 sm:px-0">
                 <i class="fas fa-<?= $category['icon'] ?> text-brand-500"></i>
                 <?= $category['name'] ?>
             </h2>
@@ -50,21 +51,21 @@ include __DIR__ . '/../views/layouts/header.php';
 
                 foreach ($catProducts as $product):
                     ?>
-                    <div
-                        class="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col h-full cursor-pointer"
+                    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col h-full cursor-pointer"
                         onclick="window.location.href='product.php?id=<?= $product['id'] ?>'">
-                        <a href="product.php?id=<?= $product['id'] ?>" class="relative h-40 sm:h-48 overflow-hidden bg-gray-100 block">
+                        <a href="product.php?id=<?= $product['id'] ?>"
+                            class="relative h-40 sm:h-48 overflow-hidden bg-gray-100 block">
                             <?php
                             $imgUrl = $product['image_url'];
                             // Override images based on user request
                             $pNameNorm = mb_strtoupper($product['name'] ?? '', 'UTF-8');
-                            
+
                             // 1. Calzone & Combo Swap
                             if ($category['name'] === 'Calzones') {
                                 $imgUrl = 'assets/images/calzone-real.png';
                             } elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
                                 $imgUrl = 'assets/images/combo-real.jpg';
-                            } 
+                            }
                             // 2. Beverages
                             elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {
                                 $imgUrl = 'assets/images/coca-cola-2l.png';
@@ -96,7 +97,8 @@ include __DIR__ . '/../views/layouts/header.php';
                         </a>
 
                         <div class="p-3 sm:p-5 flex flex-col flex-grow">
-                            <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 mb-1 leading-tight"><?= $product['name'] ?>
+                            <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 mb-1 leading-tight">
+                                <?= $product['name'] ?>
                             </h3>
                             <?php
                             $ingredients = array_filter(array_map('trim', preg_split('/[,;]+/', $product['description'] ?? '')));
@@ -104,13 +106,15 @@ include __DIR__ . '/../views/layouts/header.php';
                             <?php if (!empty($ingredients)): ?>
                                 <div class="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3 max-h-20 sm:max-h-24 overflow-y-auto">
                                     <?php foreach ($ingredients as $ingredient): ?>
-                                        <span class="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg border border-brand-100">
+                                        <span
+                                            class="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg border border-brand-100">
                                             <?= htmlspecialchars($ingredient) ?>
                                         </span>
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
-                            <p class="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2"><?= $product['description'] ?></p>
+                            <p class="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2"><?= $product['description'] ?>
+                            </p>
 
                             <div class="mt-auto flex items-center justify-between">
                                 <span class="text-lg sm:text-xl font-bold text-brand-600">R$
