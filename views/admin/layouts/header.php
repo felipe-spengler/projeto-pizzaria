@@ -82,8 +82,8 @@
                     <i class="fas fa-users w-5"></i>
                     <span class="font-medium">Clientes</span>
                 </a>
-                <?php $isMetrics = strpos($uri, 'metricas.php') !== false; ?>
-                <a href="metricas.php"
+                <?php $isMetrics = strpos($uri, 'metrics.php') !== false; ?>
+                <a href="metrics.php"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $isMetrics ? $activeClass : $inactiveClass ?>">
                     <i class="fas fa-chart-line w-5"></i>
                     <span class="font-medium">Métricas</span>
