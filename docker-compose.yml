@@ -6,8 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: pizzaria-app
-    ports:
-      - "5000:5000"
+    # app nao precisa expor porta para o host, o coolify proxy resolve
     volumes:
       - .:/var/www/html
     environment:

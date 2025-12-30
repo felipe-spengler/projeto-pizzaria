@@ -27,9 +27,9 @@ COPY composer.json composer.lock* ./
 # Install PHP dependencies (só roda se composer.json mudou)
 # Usa --no-dev para produção e --no-scripts para acelerar
 RUN if [ -f composer.lock ]; then \
-        composer install --no-interaction --optimize-autoloader --no-dev --no-scripts; \
+    composer install --no-interaction --optimize-autoloader --no-dev --no-scripts; \
     else \
-        composer install --no-interaction --optimize-autoloader --no-scripts; \
+    composer install --no-interaction --optimize-autoloader --no-scripts; \
     fi
 
 # Copiar resto dos arquivos (só esta parte será reconstruída quando código mudar)
@@ -47,7 +47,6 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
     && sed -i '/<Directory \${APACHE_DOCUMENT_ROOT}>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
-    && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
-    && sed -s -i 's/80/5000/g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-EXPOSE 5000
+EXPOSE 80
