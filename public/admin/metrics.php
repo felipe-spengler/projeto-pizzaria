@@ -17,8 +17,8 @@ $dailyVisits = $db->query("
     SELECT DATE_FORMAT(created_at, '%d/%m') as date, COUNT(*) as count 
     FROM access_logs 
     WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
-    GROUP BY DATE(created_at) 
-    ORDER BY DATE(created_at) ASC
+    GROUP BY date 
+    ORDER BY MIN(created_at) ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Por Dispositivo
