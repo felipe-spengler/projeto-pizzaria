@@ -175,7 +175,7 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                                     <i class="fas fa-print"></i>
                                 </a>
 
-                                <form action="admin.php" method="POST" class="inline-block">
+                                <form action="" method="POST" class="inline-block">
                                     <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
                                     <?php if ($order['status'] === 'pending'): ?>
                                         <button type="submit" name="status" value="preparing"
@@ -225,7 +225,7 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
 
 <!-- Audio Alert - Campainha de Notificação -->
 <audio id="notificationSound" preload="auto" volume="0.8">
-    <source src="sounds/bell.mp3" type="audio/mpeg">
+    <source src="/sounds/bell.mp3" type="audio/mpeg">
 </audio>
 
 <div class="fixed bottom-4 left-4 z-50">
@@ -309,7 +309,7 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
         const lastUpdatedEl = document.getElementById('lastUpdatedTime');
         if (lastUpdatedEl) lastUpdatedEl.innerText = timeString;
 
-        fetch(`api/check_orders.php?last_id=${lastOrderId}`)
+        fetch(`/api/check_orders.php?last_id=${lastOrderId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.new_orders_count > 0 && data.max_id > lastOrderId) {
