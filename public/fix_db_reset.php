@@ -108,6 +108,19 @@ function parseSqlFile($filePath)
                         try {
                             $db->exec($stmt);
                             $count++;
+                            
+                            // Log Success based on type
+                            $preview = substr($stmt, 0, 60);
+                            if ($isCreate) {
+                                echo "<div class='text-cyan-400'>🔨 CRIADO: <span class='text-gray-400 text-[10px]'>$preview...</span></div>";
+                            } elseif ($isAlter) {
+                                echo "<div class='text-purple-400'>🔧 ALTERADO: <span class='text-gray-400 text-[10px]'>$preview...</span></div>";
+                            } elseif ($isInsert) {
+                                // Extract table name for cleaner log
+                                preg_match('/INSERT INTO `?(\w+)`?/', $stmt, $matches);
+                                $tbl = $matches[1] ?? 'tabela';
+                                echo "<div class='text-green-500'>➕ INSERT: $tbl</div>";
+                            }
                         } catch (Exception $e) {
                             // Ignore "Table already exists" errors (Code 42S01 or message comparison)
                             // MySQL Error 1050: Table already exists
