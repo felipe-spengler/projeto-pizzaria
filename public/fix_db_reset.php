@@ -29,116 +29,139 @@ function parseSqlFile($filePath)
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset do Banco de Dados</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full border-t-4 border-brand-600">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <i class="fas fa-database text-brand-600"></i> Importar/Resetar Banco de Dados
+        </h1>
+        <p class="text-gray-600 mb-6 text-sm">
+            Faça upload do arquivo <code>.sql</code> para resetar e popular as tabelas. <br>
+            <strong class="text-red-500">Atenção:</strong> Isso apagará produtos e categorias existentes!
+        </p>
 
-<body class="bg-red-50 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full border-t-4 border-red-600">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Reset Total do Cardápio</h1>
-        <p class="text-gray-600 mb-6 text-sm">Esta ferramenta apagará produtos, categorias e sabores e recriará tudo a
-            partir do arquivo original. <strong>Usuários e Clientes NÃO serão apagados.</strong></p>
-
-        <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar p-2 bg-gray-50 text-xs font-mono rounded">
-            <?php
-            try {
-                $db = Database::getInstance()->getConnection();
-                echo '<div class="text-green-600">✅ Conectado ao banco.</div>';
-
-                // 1. Limpar tabelas (Ordem Inversa de Dependência)
-                // Mantemos users e addresses
-                $tablesToClear = [
-                    'order_item_flavors',
-                    'order_items',
-                    'orders', // Orders dependem de users, mas as foreign keys podem reclamar se apagarmos produtos referenciados...
-                    // Na verdade, se queremos manter users, ok. Mas orders referenciam produtos. 
-                    // Se apagarmos produtos, temos que apagar orders ou itens. O usuário pediu para resetar "tudo exceto usuarios".
-                    // Então vou limpar pedidos também para evitar inconsistência.
-                    'products',
-                    'flavors',
-                    'categories'
-                ];
-
-                $db->exec("SET FOREIGN_KEY_CHECKS = 0");
-                foreach ($tablesToClear as $table) {
-                    $db->exec("TRUNCATE TABLE `$table`"); // TRUNCATE reseta o Auto Increment
-                    echo "<div class='text-gray-500'>🗑️ Tabela <strong>$table</strong> limpa.</div>";
-                }
-                $db->exec("SET FOREIGN_KEY_CHECKS = 1");
-
-                // 2. Ler SQL
-                $sqlFile = __DIR__ . '/../database.sql';
-                echo "<div class='text-blue-600 mt-2'>📂 Lendo $sqlFile...</div>";
-
-                $statements = parseSqlFile($sqlFile);
-                echo "<div class='text-blue-600'>📝 Encontrados " . count($statements) . " comandos SQL.</div>";
-
-                // 3. Executar Inserts
-                // Filtramos apenas comandos INSERT para as tabelas que limpamos
-                // Ou CREATE TABLE se quisermos recriar, mas o TRUNCATE ja limpou.
-                // O database.sql tem CREATE e INSERT. Como já temos as tabelas criadas (e só limpamos), 
-                // vamos executar apenas os INSERTS das tabelas que limpamos.
-            
-                $ignorePrefixes = [
-                    'SET SQL_MODE',
-                    'START TRANSACTION',
-                    'SET time_zone',
-                    'COMMIT',
-                    'CREATE TABLE',
-                    '--',
-                    'INSERT INTO `users`',
-                    'INSERT INTO `addresses`' // Ignorar insert de users padrão se já existe
-                ];
-
-                $count = 0;
-                $db->beginTransaction();
-
-                foreach ($statements as $stmt) {
-                    if (empty($stmt))
-                        continue;
-
-                    // Verificar se é um comando relevante
-                    $isInsert = stripos($stmt, 'INSERT INTO') === 0;
-                    if (!$isInsert)
-                        continue; // Pula CREATE TABLE, SET, etc.
-            
-                    // Verificar se é insert na tabela users (para não duplicar admin se ele nao foi apagado)
-                    // Como fizemos TRUNCATE nas outras, podemos inserir tudo das outras.
-                    if (stripos($stmt, 'INSERT INTO `users`') !== false) {
-                        // Se users não foi truncado, não inserimos nada aqui para não dar erro de duplicate key no email admin
-                        continue;
+        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['sql_file'])): ?>
+            <div class="space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar p-4 bg-gray-900 text-green-400 font-mono text-xs rounded-lg mb-6 shadow-inner">
+                <?php
+                try {
+                    $file = $_FILES['sql_file'];
+                    if ($file['error'] !== UPLOAD_ERR_OK) {
+                        throw new Exception("Erro no upload do arquivo. Código: " . $file['error']);
+                    }
+                    if (pathinfo($file['name'], PATHINFO_EXTENSION) !== 'sql') {
+                        throw new Exception("Por favor envie apenas arquivos .sql");
                     }
 
-                    try {
-                        $db->exec($stmt);
-                        $count++;
-                    } catch (Exception $e) {
-                        echo "<div class='text-red-500'>❌ Erro no comando: " . substr(htmlspecialchars($stmt), 0, 50) . "... : " . $e->getMessage() . "</div>";
+                    $db = Database::getInstance()->getConnection();
+                    echo '<div>⚡ Conectado ao banco.</div>';
+
+                    // 1. Limpar tabelas
+                    $tablesToClear = ['order_item_flavors', 'order_items', 'orders', 'products', 'flavors', 'categories'];
+                    
+                    $db->exec("SET FOREIGN_KEY_CHECKS = 0");
+                    foreach ($tablesToClear as $table) {
+                        $db->exec("TRUNCATE TABLE `$table`");
+                        echo "<div>🗑️ Tabela <strong>$table</strong> limpa.</div>";
                     }
+                    $db->exec("SET FOREIGN_KEY_CHECKS = 1");
+
+                    // 2. Ler Arquivo Enviado
+                    $sqlContent = file_get_contents($file['tmp_name']);
+                    
+                    // Tratamento simples
+                    $sqlContent = preg_replace('/--.*$/m', '', $sqlContent);
+                    $sqlContent = preg_replace('/\/\*.*?\*\//s', '', $sqlContent);
+                    
+                    $statements = array_filter(array_map('trim', explode(';', $sqlContent)));
+                    
+                    echo "<div class='text-blue-400 mt-2'>� Processando " . count($statements) . " comandos...</div>";
+                    
+                    $db->beginTransaction();
+                    $count = 0;
+                    
+                    foreach ($statements as $stmt) {
+                        if (empty($stmt)) continue;
+                        $isInsert = stripos($stmt, 'INSERT INTO') === 0;
+                        if (!$isInsert) continue; 
+                        
+                        if (stripos($stmt, 'INSERT INTO `users`') !== false) continue;
+                        
+                        try {
+                            $db->exec($stmt);
+                            $count++;
+                        } catch (Exception $e) {
+                            echo "<div class='text-red-400'>❌ Erro: " . substr(htmlspecialchars($stmt), 0, 50) . "...</div>";
+                        }
+                    }
+                    
+                    $db->commit();
+                    echo "<div class='text-white font-bold mt-4 border-t border-gray-700 pt-2'>✅ Sucesso! $count registros importados.</div>";
+                    
+                } catch (Exception $e) {
+                    if ($db->inTransaction()) $db->rollBack();
+                    echo '<div class="text-red-500 font-bold mt-4">Erro Fatal: ' . $e->getMessage() . '</div>';
                 }
+                ?>
+            </div>
+            
+            <div class="text-center">
+                <a href="menu.php" class="inline-flex items-center gap-2 bg-gray-800 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-700 transition">
+                    <i class="fas fa-check"></i> Ir para o Cardápio
+                </a>
+                <a href="fix_db_reset.php" class="ml-4 text-gray-500 hover:text-gray-800 underline text-sm">Nova Importação</a>
+            </div>
 
-                $db->commit();
-                echo "<div class='text-green-600 font-bold mt-4'>✅ Sucesso! $count comandos de inserção executados.</div>";
-                echo "<div class='text-green-600 mt-1'>O banco está limpo e sincronizado com o arquivo original.</div>";
+        <?php else: ?>
 
-            } catch (Exception $e) {
-                if ($db->inTransaction())
-                    $db->rollBack();
-                echo '<div class="text-red-600 font-bold mt-4">Erro Fatal: ' . $e->getMessage() . '</div>';
-            }
-            ?>
-        </div>
+            <form action="" method="POST" enctype="multipart/form-data" class="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center hover:border-brand-500 hover:bg-brand-50 transition-all cursor-pointer group" onclick="document.getElementById('fileInput').click()">
+                <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3 class="font-bold text-gray-700 text-lg mb-1">Clique para selecionar o arquivo</h3>
+                <p class="text-gray-400 text-sm mb-4">Ou arraste o arquivo database.sql aqui</p>
+                <input type="file" name="sql_file" id="fileInput" accept=".sql" class="hidden" onchange="document.getElementById('uploadBtn').classList.remove('hidden'); document.querySelector('h3').innerText = this.files[0].name">
+                
+                <button id="uploadBtn" type="submit" class="hidden mt-4 bg-brand-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-brand-700 transition-all transform hover:-translate-y-1" onclick="event.stopPropagation()">
+                    <i class="fas fa-play mr-2"></i> Iniciar Importação
+                </button>
+            </form>
 
-        <div class="mt-6 text-center">
-            <a href="menu.php"
-                class="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-brand-700 transition">Voltar ao
-                Cardápio</a>
-        </div>
+        <?php endif; ?>
     </div>
+    
+    <script>
+        // Drag and Drop visual feedback
+        const dropZone = document.querySelector('form');
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-brand-500', 'bg-brand-50');
+            }, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-brand-500', 'bg-brand-50');
+            }, false);
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('fileInput').files = files;
+            
+            // Trigger change event manually
+            const event = new Event('change');
+            document.getElementById('fileInput').dispatchEvent(event);
+        }, false);
+    </script>
 </body>
-
 </html>
