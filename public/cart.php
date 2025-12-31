@@ -61,46 +61,46 @@ if (isset($_GET['success'])):
     
     if ($order):
         // Build Complete WhatsApp Message
-        $msg = "*🍕 NOVO PEDIDO #{$order['id']}*\n";
+        $msg = "*\u{1F355} NOVO PEDIDO #{$order['id']}*\n";
         $msg .= "================================\n";
-        $msg .= "*📅 Data:* " . date('d/m/Y H:i', strtotime($order['created_at'])) . "\n";
-        $msg .= "*👤 Cliente:* {$order['customer_name']}\n"; // Controller uses 'customer_name' alias
+        $msg .= "*\u{1F4C5} Data:* " . date('d/m/Y H:i', strtotime($order['created_at'])) . "\n";
+        $msg .= "*\u{1F464} Cliente:* {$order['customer_name']}\n";
         if ($order['phone']) {
-            $msg .= "*📱 Telefone:* {$order['phone']}\n";
+            $msg .= "*\u{1F4F1} Telefone:* {$order['phone']}\n";
         }
         $msg .= "================================\n\n";
 
         // Delivery Info
-        $msg .= "*📦 ENTREGA:*\n";
         if ($order['delivery_method'] == 'delivery') {
-            $msg .= "🏍️ *Delivery*\n";
-            $msg .= "📍 " . $order['delivery_address'] . "\n";
+            $msg .= "*\u{1F4E6} ENTREGA:*\n";
+            $msg .= "\u{1F3CD} *Delivery*\n";
+            $msg .= "\u{1F4CD} " . $order['delivery_address'] . "\n";
         } else {
-            $msg .= "🏪 *RETIRADA NO BALCÃO*\n";
+            $msg .= "*\u{1F3EA} RETIRADA NO BALCÃO*\n";
         }
         $msg .= "\n";
 
         // Payment Info (only for delivery)
         if ($order['delivery_method'] == 'delivery') {
-            $msg .= "*💳 PAGAMENTO:*\n";
+            $msg .= "*\u{1F4B3} PAGAMENTO:*\n";
             $paymentLabels = [
-                'pix' => '💰 PIX',
-                'credit_card' => '💳 Cartão de Crédito',
-                'debit_card' => '💳 Cartão de Débito',
-                'cash' => '💵 Dinheiro'
+                'pix' => "\u{1F4B0} PIX",
+                'credit_card' => "\u{1F4B3} Cartão de Crédito",
+                'debit_card' => "\u{1F4B3} Cartão de Débito",
+                'cash' => "\u{1F4B5} Dinheiro"
             ];
             $msg .= ($paymentLabels[$order['payment_method']] ?? ucfirst($order['payment_method'])) . "\n";
             
             // Add change info if payment is cash and change_for is set
             if ($order['payment_method'] == 'cash' && $order['change_for']) {
-                $msg .= "💸 Troco para: R$ " . number_format($order['change_for'], 2, ',', '.') . "\n";
+                $msg .= "\u{1F4B8} Troco para: R$ " . number_format($order['change_for'], 2, ',', '.') . "\n";
             }
             
             $msg .= "\n";
         }
 
         // Items
-        $msg .= "*🛒 ITENS DO PEDIDO:*\n";
+        $msg .= "*\u{1F6D2} ITENS DO PEDIDO:*\n";
         $msg .= "--------------------------------\n";
         foreach ($order['items'] as $item) {
             $msg .= "• *{$item['quantity']}x {$item['product_name']}*\n";
@@ -117,17 +117,17 @@ if (isset($_GET['success'])):
     // Notes
     if ($order['notes']) {
         $msg .= "--------------------------------\n";
-        $msg .= "*📝 OBSERVAÇÕES:*\n";
+        $msg .= "*\u{1F4DD} OBSERVAÇÕES:*\n";
         $msg .= $order['notes'] . "\n";
     }
 
     // Total
     $msg .= "================================\n";
-    $msg .= "*💰 TOTAL: R$ " . number_format($order['total_amount'], 2, ',', '.') . "*\n";
+    $msg .= "*\u{1F4B0} TOTAL: R$ " . number_format($order['total_amount'], 2, ',', '.') . "*\n";
     $msg .= "================================\n\n";
-    $msg .= "Gostaria de confirmar meu pedido! 😋";
+    $msg .= "Gostaria de confirmar meu pedido! \u{1F60B}";
 
-    $waLink = "https://wa.me/5549999459490?text=" . urlencode($msg);
+    $waLink = "https://wa.me/5549999459490?text=" . rawurlencode($msg);
     ?>
     <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
