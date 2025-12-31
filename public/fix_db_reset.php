@@ -119,17 +119,22 @@ function parseSqlFile($filePath)
 
         <?php else: ?>
 
-            <form action="" method="POST" enctype="multipart/form-data" class="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center hover:border-brand-500 hover:bg-brand-50 transition-all cursor-pointer group" onclick="document.getElementById('fileInput').click()">
+            <form action="" method="POST" enctype="multipart/form-data" class="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center hover:border-brand-500 hover:bg-brand-50 transition-all cursor-pointer group relative" onclick="document.getElementById('fileInput').click()">
+                
+                <!-- Loading Overlay -->
+                <div id="loadingOverlay" class="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10 hidden backdrop-blur-sm rounded-xl">
+                    <i class="fas fa-circle-notch fa-spin text-4xl text-brand-600 mb-2"></i>
+                    <p class="font-bold text-gray-700">Processando...</p>
+                </div>
+
                 <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
                     <i class="fas fa-cloud-upload-alt"></i>
                 </div>
-                <h3 class="font-bold text-gray-700 text-lg mb-1">Clique para selecionar o arquivo</h3>
-                <p class="text-gray-400 text-sm mb-4">Ou arraste o arquivo database.sql aqui</p>
-                <input type="file" name="sql_file" id="fileInput" accept=".sql" class="hidden" onchange="document.getElementById('uploadBtn').classList.remove('hidden'); document.querySelector('h3').innerText = this.files[0].name">
+                <h3 class="font-bold text-gray-700 text-lg mb-1">Clique ou Arraste o arquivo aqui</h3>
+                <p class="text-gray-400 text-sm mb-4">Selecione o arquivo <strong>database.sql</strong></p>
                 
-                <button id="uploadBtn" type="submit" class="hidden mt-4 bg-brand-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-brand-700 transition-all transform hover:-translate-y-1" onclick="event.stopPropagation()">
-                    <i class="fas fa-play mr-2"></i> Iniciar Importação
-                </button>
+                <input type="file" name="sql_file" id="fileInput" accept=".sql" class="hidden" 
+                    onchange="document.getElementById('loadingOverlay').classList.remove('hidden'); this.form.submit();">
             </form>
 
         <?php endif; ?>
@@ -156,11 +161,12 @@ function parseSqlFile($filePath)
         dropZone.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const files = dt.files;
-            document.getElementById('fileInput').files = files;
             
-            // Trigger change event manually
-            const event = new Event('change');
-            document.getElementById('fileInput').dispatchEvent(event);
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                dropZone.submit();
+            }
         }, false);
     </script>
 </body>
