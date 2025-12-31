@@ -116,6 +116,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
                     <div class="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
                         <?php if (isset($_SESSION['user_id'])): ?>
+                            <!-- Admin Link -->
+                            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+                                <a href="admin/" class="text-gray-600 hover:text-brand-600 font-medium transition-colors"
+                                    title="Painel Administrativo">
+                                    <i class="fas fa-user-shield text-xl"></i>
+                                </a>
+                            <?php endif; ?>
+
                             <a href="cart.php" class="relative p-2 text-gray-600 hover:text-brand-600 transition-colors">
                                 <i class="fas fa-shopping-bag text-xl"></i>
                                 <?php if (!empty($_SESSION['cart'])): ?>

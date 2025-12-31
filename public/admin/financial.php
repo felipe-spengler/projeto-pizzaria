@@ -55,10 +55,10 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                                 <?= $reg['closed_at'] ? date('d/m/Y H:i', strtotime($reg['closed_at'])) : '-' ?></td>
                             <td class="px-6 py-4 font-bold text-green-600">R$
                                 <?= number_format($reg['total_sales'], 2, ',', '.') ?></td>
-                            <td class="px-6 py-4 text-gray-500">R$ <?= number_format($reg['initial_balance'], 2, ',', '.') ?>
+                            <td class="px-6 py-4 text-gray-500">R$ <?= number_format($reg['initial_balance'] ?? 0, 2, ',', '.') ?>
                             </td>
                             <td class="px-6 py-4 font-mono font-bold">R$
-                                <?= number_format($reg['final_balance'], 2, ',', '.') ?></td>
+                                <?= number_format($reg['final_balance'] ?? 0, 2, ',', '.') ?></td>
                             <td class="px-6 py-4 text-xs">
                                 <?php if ($reg['status'] === 'closed'): ?>
                                     <div class="flex gap-2">
@@ -70,8 +70,8 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                                             <?= number_format($reg['total_cash'], 2, ',', '.') ?></div>
                                     </div>
                                     <div class="text-xs text-gray-400 mt-1">
-                                        Supp: <?= number_format($reg['total_supply'], 2, ',', '.') ?> | Sangria:
-                                        <?= number_format($reg['total_bleed'], 2, ',', '.') ?>
+                                        Supp: <?= number_format($reg['total_supply'] ?? 0, 2, ',', '.') ?> | Sangria:
+                                        <?= number_format($reg['total_bleed'] ?? 0, 2, ',', '.') ?>
                                     </div>
                                 <?php else: ?>
                                     <span class="text-gray-400 italic">Em andamento...</span>

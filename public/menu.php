@@ -57,32 +57,9 @@ include __DIR__ . '/../views/layouts/header.php';
                             class="relative h-40 sm:h-48 overflow-hidden bg-gray-100 block">
                             <?php
                             $imgUrl = $product['image_url'];
-                            // Override images based on user request
-                            $pNameNorm = mb_strtoupper($product['name'] ?? '', 'UTF-8');
-
-                            // 1. Calzone & Combo Swap
-                            if ($category['name'] === 'Calzones') {
-                                $imgUrl = 'assets/images/combo-2-pizzas.png'; // Swapped based on user report (files seem exchanged)
-                            } elseif ($pNameNorm === 'COMBO 2 PIZZA G') {
-                                $imgUrl = 'assets/images/calzone.jpg'; // Swapped based on user report
-                            }
-                            // 2. Beverages
-                            elseif ($pNameNorm === 'REFRIGERANTE 2L' || $pNameNorm === 'REFRIGERANTE 1L') {
-                                $imgUrl = 'assets/images/coca-cola-2l.png';
-                            } elseif ($pNameNorm === 'REFRIGERANTE LATA') {
-                                $imgUrl = 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80';
-                            }
-                            // 3. Pizza Rotation
-                            elseif (str_contains($pNameNorm, 'PIZZA PEQUENA')) {
-                                $imgUrl = 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80';
-                            } elseif (str_contains($pNameNorm, 'PIZZA MÉDIA')) {
-                                $imgUrl = 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=800&q=80';
-                            } elseif (str_contains($pNameNorm, 'PIZZA GRANDE')) {
-                                $imgUrl = 'https://images.unsplash.com/photo-1594007654729-407eedc4be65?auto=format&fit=crop&w=800&q=80';
-                            } elseif (str_contains($pNameNorm, 'PIZZA GIGANTE')) {
-                                $imgUrl = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80';
-                            } elseif (str_contains($pNameNorm, 'PIZZA BROTO')) {
-                                $imgUrl = 'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?auto=format&fit=crop&w=800&q=80';
+                            // Fallback if no image
+                            if (empty($imgUrl)) {
+                                $imgUrl = 'assets/images/pizza-placeholder.jpg'; // Ensure this file exists or use a generic URL 
                             }
                             ?>
                             <img src="<?= $imgUrl ?>" alt="<?= $product['name'] ?>"

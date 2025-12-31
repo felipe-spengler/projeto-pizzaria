@@ -149,19 +149,69 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                     <?php endif; ?>
                     
                     <div class="flex-grow">
-                        <label class="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 justify-center w-full">
+                        <label class="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 justify-center w-full relative">
                             <i class="fas fa-cloud-upload-alt text-brand-600"></i>
-                            <span>Escolher Arquivo</span>
-                            <input type="file" name="image_file" accept="image/*" class="hidden" onchange="document.getElementById('fileNameDisplay').textContent = this.files[0] ? this.files[0].name : '';">
+                            <span id="uploadLabel">Escolher Arquivo</span>
+                            <input type="file" name="image_file" id="imageInput" accept="image/*" class="hidden">
                         </label>
                         <span id="fileNameDisplay" class="text-xs text-gray-500 truncate block mt-1 text-center h-4"></span>
                     </div>
+                    
+                    <!-- Clear File Button (Hidden by default) -->
+                    <button type="button" id="clearFileBtn" class="hidden text-red-500 hover:text-red-700 p-2" title="Remover arquivo selecionado">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
 
                 <!-- Fallback URL Input -->
                 <label class="block text-xs text-gray-500 mb-1">Ou cole uma URL externa:</label>
-                <input type="url" name="image_url" value="<?= $product['image_url'] ?? '' ?>" placeholder="https://..."
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-gray-900 transition-all">
+                <input type="url" name="image_url" id="urlInput" value="<?= $product['image_url'] ?? '' ?>" placeholder="https://..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-gray-900 transition-all disabled:bg-gray-100 disabled:text-gray-400">
+
+                <script>
+                    const imageInput = document.getElementById('imageInput');
+                    const urlInput = document.getElementById('urlInput');
+                    const fileNameDisplay = document.getElementById('fileNameDisplay');
+                    const clearFileBtn = document.getElementById('clearFileBtn');
+                    const uploadLabel = document.getElementById('uploadLabel');
+
+                    // Function to handle file selection
+                    imageInput.addEventListener('change', function() {
+                        if (this.files && this.files[0]) {
+                            fileNameDisplay.textContent = this.files[0].name;
+                            urlInput.value = ''; // Clear URL
+                            urlInput.disabled = true; // Disable URL input
+                            urlInput.placeholder = "Imagem local selecionada";
+                            clearFileBtn.classList.remove('hidden');
+                            uploadLabel.textContent = "Trocar Arquivo";
+                        } else {
+                           resetFileInput();
+                        }
+                    });
+
+                    // Function to clear file selection
+                    clearFileBtn.addEventListener('click', function() {
+                        resetFileInput();
+                    });
+
+                    function resetFileInput() {
+                        imageInput.value = ''; // Clear file input
+                        fileNameDisplay.textContent = '';
+                        urlInput.disabled = false; // Enable URL input
+                        urlInput.placeholder = "https://...";
+                        clearFileBtn.classList.add('hidden');
+                        uploadLabel.textContent = "Escolher Arquivo";
+                    }
+
+                    // If URL is typed, ensure file input is clear (optional, but good for consistency)
+                    urlInput.addEventListener('input', function() {
+                        if (this.value.length > 0) {
+                            // If user types URL, we could clear file input, but file input disables URL, so we can't type if file is there.
+                            // This listener handles if they type first, then try to select file? 
+                            // Standard behavior: file selection overrides URL. 
+                        }
+                    });
+                </script>
             </div>
 
             <div class="col-span-2 border-t border-gray-100 my-4 pt-6"></div>
