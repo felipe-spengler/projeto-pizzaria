@@ -35,6 +35,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = $_POST['description'];
     $price = $_POST['price'];
     $imageUrl = $_POST['image_url'];
+
+    // Handle Image Upload
+    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/../../public/assets/images/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $fileInfo = pathinfo($_FILES['image_file']['name']);
+        $extension = strtolower($fileInfo['extension']);
+        $validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+        if (in_array($extension, $validExtensions)) {
+            // Sanitize filename
+            $cleanName = preg_replace('/[^a-zA-Z0-9_-]/', '', pathinfo($fileInfo['filename'], PATHINFO_FILENAME));
+            $newFilename = $cleanName . '-' . uniqid() . '.' . $extension;
+            $destination = $uploadDir . $newFilename;
+
+            if (move_uploaded_file($_FILES['image_file']['tmp_name'], $destination)) {
+                $imageUrl = 'assets/images/' . $newFilename;
+            }
+        }
+    }
     $isCustomizable = isset($_POST['is_customizable']) ? 1 : 0;
     $maxFlavors = $_POST['max_flavors'];
     $active = isset($_POST['active']) ? 1 : 0;
@@ -77,7 +100,7 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
 <?php endif; ?>
 
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-4xl">
-    <form method="POST" class="p-8 space-y-6">
+    <form method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Name -->
             <div class="col-span-2 md:col-span-1">
@@ -113,11 +136,32 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-gray-900 placeholder-gray-400 transition-all">
             </div>
 
-            <!-- Image URL -->
+            <!-- Image -->
             <div class="col-span-2 md:col-span-1">
-                <label class="block text-sm font-bold text-gray-700 mb-2">URL da Imagem</label>
-                <input type="url" name="image_url" value="<?= $product['image_url'] ?? '' ?>"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-gray-900 placeholder-gray-400 transition-all">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Imagem do Produto</label>
+                
+                <!-- File Input -->
+                <div class="flex items-center gap-4 mb-3">
+                    <?php if (!empty($product['image_url'])): ?>
+                        <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 group bg-gray-100 flex-shrink-0">
+                            <img src="../../public/<?= $product['image_url'] ?>" class="w-full h-full object-cover">
+                        </div>
+                    <?php endif; ?>
+                    
+                    <div class="flex-grow">
+                        <label class="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 justify-center w-full">
+                            <i class="fas fa-cloud-upload-alt text-brand-600"></i>
+                            <span>Escolher Arquivo</span>
+                            <input type="file" name="image_file" accept="image/*" class="hidden" onchange="document.getElementById('fileNameDisplay').textContent = this.files[0] ? this.files[0].name : '';">
+                        </label>
+                        <span id="fileNameDisplay" class="text-xs text-gray-500 truncate block mt-1 text-center h-4"></span>
+                    </div>
+                </div>
+
+                <!-- Fallback URL Input -->
+                <label class="block text-xs text-gray-500 mb-1">Ou cole uma URL externa:</label>
+                <input type="url" name="image_url" value="<?= $product['image_url'] ?? '' ?>" placeholder="https://..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-gray-900 transition-all">
             </div>
 
             <div class="col-span-2 border-t border-gray-100 my-4 pt-6"></div>
