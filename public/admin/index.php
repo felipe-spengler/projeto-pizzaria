@@ -23,10 +23,20 @@ if (isset($_GET['logout'])) {
 $db = Database::getInstance()->getConnection();
 
 // Quick Stats (Mock logic until we have real orders populated)
-$today = date('Y-m-d');
+// Logic for "Caixa" (Register Session)
+$registerFile = __DIR__ . '/../../storage/register_state.json';
+// Default to today 00:00 if no session found
+$lastOpen = date('Y-m-d 00:00:00');
+if (file_exists($registerFile)) {
+    $data = json_decode(file_get_contents($registerFile), true);
+    $lastOpen = $data['last_open'] ?? $lastOpen;
+}
+
 $stats = [
-    'revenue' => $db->query("SELECT SUM(total_amount) FROM orders WHERE DATE(created_at) = '$today' AND status != 'cancelled'")->fetchColumn() ?: 0,
-    'orders_count' => $db->query("SELECT COUNT(*) FROM orders WHERE DATE(created_at) = '$today'")->fetchColumn() ?: 0,
+    // Revenue: Only COMPLETED orders in current session
+    'revenue' => $db->query("SELECT SUM(total_amount) FROM orders WHERE status = 'completed' AND created_at >= '$lastOpen'")->fetchColumn() ?: 0,
+    // Count: All orders in current session
+    'orders_count' => $db->query("SELECT COUNT(*) FROM orders WHERE created_at >= '$lastOpen'")->fetchColumn() ?: 0,
     'pending_orders' => $db->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn() ?: 0,
     'active_dishes' => 0 // Mock
 ];
@@ -75,12 +85,19 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
 ?>
 
 <!-- Your existing Dashboard HTML here -->
+<div class="mb-4 flex flex-col md:flex-row justify-end gap-4">
+    <button onclick="closeRegister()"
+        class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-md flex items-center gap-2 transition-all">
+        <i class="fas fa-cash-register"></i>
+        <span>Fechar Caixa</span>
+    </button>
+</div>
 <!-- Stats Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div
         class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-brand-200 transition-all">
         <div>
-            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Faturamento Hoje</p>
+            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Caixa Atual (Concluídos)</p>
             <h3 class="text-2xl font-bold text-gray-900">R$ <?= number_format($stats['revenue'], 2, ',', '.') ?></h3>
         </div>
         <div
@@ -93,7 +110,7 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
     <div
         class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-brand-200 transition-all">
         <div>
-            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Pedidos Hoje</p>
+            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Pedidos no Caixa</p>
             <h3 class="text-2xl font-bold text-gray-900"><?= $stats['orders_count'] ?></h3>
         </div>
         <div
@@ -125,7 +142,9 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                 <?php if (count($orders) > 0): ?>
                     <?php foreach ($orders as $order): ?>
                         <tr class="hover:bg-gray-50 transition-colors <?= !$order['viewed'] ? 'bg-yellow-50' : '' ?>"
-                            onclick="markViewed(<?= $order['id'] ?>)" style="cursor: pointer;">
+                            onclick="markViewed(<?= $order['id'] ?>)" style="cursor: pointer;"
+                            data-created-at="<?= $order['created_at'] ?>" data-status="<?= $order['status'] ?>"
+                            id="order-row-<?= $order['id'] ?>">
                             <td class="px-6 py-4 text-gray-900 <?= !$order['viewed'] ? 'font-bold' : 'font-medium' ?>">
                                 #<?= $order['id'] ?></td>
                             <td class="px-6 py-4">
@@ -148,6 +167,8 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                                     'pending' => 'bg-yellow-100 text-yellow-700',
                                     'preparing' => 'bg-blue-100 text-blue-700',
                                     'delivery' => 'bg-orange-100 text-orange-700',
+                                    'out_for_delivery' => 'bg-orange-100 text-orange-700',
+                                    'ready_for_pickup' => 'bg-purple-100 text-purple-700',
                                     'completed' => 'bg-green-100 text-green-700',
                                     'cancelled' => 'bg-red-100 text-red-700',
                                 ];
@@ -155,6 +176,9 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                                     'pending' => 'Pendente',
                                     'preparing' => 'Preparando',
                                     'delivery' => 'Em Entrega',
+                                    'out_for_delivery' => 'Saiu p/ Entrega',
+                                    'ready_for_pickup' => 'Aguardando Retirada',
+                                    'delivered' => 'Entregue',
                                     'completed' => 'Concluído',
                                     'cancelled' => 'Cancelado',
                                 ];
@@ -184,13 +208,21 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
                                             <i class="fas fa-play"></i> Preparar
                                         </button>
                                     <?php elseif ($order['status'] === 'preparing'): ?>
-                                        <button type="submit" name="status" value="out_for_delivery"
-                                            class="text-orange-600 hover:text-orange-800 font-medium text-sm mr-2"
-                                            title="Despachar">
-                                            <i class="fas fa-motorcycle"></i> Despachar
-                                        </button>
-                                    <?php elseif ($order['status'] === 'out_for_delivery'): ?>
-                                        <button type="submit" name="status" value="delivered"
+                                        <?php if ($order['delivery_method'] === 'pickup'): ?>
+                                            <button type="submit" name="status" value="ready_for_pickup"
+                                                class="text-purple-600 hover:text-purple-800 font-medium text-sm mr-2"
+                                                title="Pronto para Retirada">
+                                                <i class="fas fa-shopping-bag"></i> Pronto
+                                            </button>
+                                        <?php else: ?>
+                                            <button type="submit" name="status" value="out_for_delivery"
+                                                class="text-orange-600 hover:text-orange-800 font-medium text-sm mr-2"
+                                                title="Despachar">
+                                                <i class="fas fa-motorcycle"></i> Despachar
+                                            </button>
+                                        <?php endif; ?>
+                                    <?php elseif ($order['status'] === 'out_for_delivery' || $order['status'] === 'ready_for_pickup'): ?>
+                                        <button type="submit" name="status" value="completed"
                                             class="text-green-600 hover:text-green-800 font-medium text-sm mr-2" title="Concluir">
                                             <i class="fas fa-check"></i> Concluir
                                         </button>
@@ -375,6 +407,71 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
             .then(() => {
                 // Reload to update UI
                 location.reload();
+            });
+    }
+</script>
+<script>
+    // Late Order Alerts Logic
+    function checkLateOrders() {
+        const rows = document.querySelectorAll('tr[data-created-at]');
+        const now = new Date();
+
+        rows.forEach(row => {
+            const createdAtStr = row.dataset.createdAt; // YYYY-MM-DD HH:mm:ss
+            const status = row.dataset.status;
+
+            // Only alert for active orders (not completed/cancelled)
+            if (['completed', 'cancelled', 'delivered'].includes(status)) return;
+
+            // Parse Date (Compatibilidade Safari/Legacy: repalce space with T)
+            const createdAt = new Date(createdAtStr.replace(' ', 'T'));
+            const diffMinutes = (now - createdAt) / 1000 / 60;
+
+            // Remove existing alert classes first
+            row.classList.remove('bg-yellow-100', 'bg-orange-100', 'bg-red-100', 'animate-pulse');
+
+            // Apply Alerts
+            if (diffMinutes >= 90) {
+                // Red Alert + Pulse (Every 10 mins notification logic handled by pulse visual for now)
+                row.classList.add('bg-red-100');
+                // Ensure specific cells don't override background heavily or add border
+                row.style.borderLeft = "4px solid #ef4444";
+            } else if (diffMinutes >= 75) {
+                // Orange Alert
+                row.classList.add('bg-orange-100');
+                row.style.borderLeft = "4px solid #f97316";
+            } else if (diffMinutes >= 60) {
+                // Yellow Alert
+                row.classList.add('bg-yellow-50');
+                row.style.borderLeft = "4px solid #eab308";
+            } else {
+                row.style.borderLeft = "none";
+            }
+        });
+    }
+
+    // Run late check every minute
+    setInterval(checkLateOrders, 60000);
+    // Run immediately
+    checkLateOrders();
+
+    // Close Register Logic
+    function closeRegister() {
+        if (!confirm('Deseja realmente fechar o caixa? Isso irá resetar o faturamento da sessão atual.')) return;
+
+        fetch('/admin/api/close_register.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Caixa fechado com sucesso!\n\nFaturamento: R$ ${parseFloat(data.revenue).toFixed(2)}\nPedidos: ${data.count}`);
+                    location.reload();
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Erro ao conectar com o servidor.');
             });
     }
 </script>
