@@ -87,21 +87,45 @@ function parseSqlFile($filePath)
                     
                     foreach ($statements as $stmt) {
                         if (empty($stmt)) continue;
-                        $isInsert = stripos($stmt, 'INSERT INTO') === 0;
-                        if (!$isInsert) continue; 
                         
-                        if (stripos($stmt, 'INSERT INTO `users`') !== false) continue;
-                        
+                        // Determine type
+                        $params = [];
+                        $stmtUpper = strtoupper($stmt);
+                        $isInsert = strpos($stmtUpper, 'INSERT INTO') === 0;
+                        $isCreate = strpos($stmtUpper, 'CREATE TABLE') === 0;
+                        $isAlter = strpos($stmtUpper, 'ALTER TABLE') === 0;
+
+                        // Skip users insert to avoid admin overwrite/conflict if strategy implies
+                        if ($isInsert && strpos($stmtUpper, 'INSERT INTO `USERS`') !== false) {
+                             // Check if we should skip. The original script skipped it.
+                             // Let's keep skipping users insert if the table wasn't truncated (it wasn't in the list above)
+                             continue;
+                        }
+
+                        // Allow INSERT, CREATE, ALTER
+                        if (!$isInsert && !$isCreate && !$isAlter) continue;
+
                         try {
                             $db->exec($stmt);
                             $count++;
                         } catch (Exception $e) {
-                            echo "<div class='text-red-400'>❌ Erro: " . substr(htmlspecialchars($stmt), 0, 50) . "...</div>";
+                            // Ignore "Table already exists" errors (Code 42S01 or message comparison)
+                            // MySQL Error 1050: Table already exists
+                            if (strpos($e->getMessage(), '1050') !== false) {
+                                echo "<div class='text-yellow-500 text-xs'>⚠️ Tabela já existe (ignorado).</div>";
+                            } 
+                            // Ignore "Column already exists" (Code 42S21 or 1060)
+                            elseif (strpos($e->getMessage(), '1060') !== false) {
+                                echo "<div class='text-yellow-500 text-xs'>⚠️ Coluna já existe (ignorado).</div>";
+                            }
+                            else {
+                                echo "<div class='text-red-400'>❌ Erro: " . substr(htmlspecialchars($stmt), 0, 50) . "... (" . $e->getMessage() . ")</div>";
+                            }
                         }
                     }
                     
                     $db->commit();
-                    echo "<div class='text-white font-bold mt-4 border-t border-gray-700 pt-2'>✅ Sucesso! $count registros importados.</div>";
+                    echo "<div class='text-white font-bold mt-4 border-t border-gray-700 pt-2'>✅ Sucesso! $count comandos executados.</div>";
                     
                 } catch (Exception $e) {
                     if ($db->inTransaction()) $db->rollBack();
