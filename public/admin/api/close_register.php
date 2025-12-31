@@ -24,38 +24,94 @@ if ($openOrders > 0) {
     exit;
 }
 
-// 2. "Close" the register
-// We simply save the current timestamp as the new "start" time for the next session.
-// We store this in a JSON file.
-$storageDir = __DIR__ . '/../../../storage';
-if (!is_dir($storageDir)) {
-    mkdir($storageDir, 0755, true);
-}
-$registerFile = $storageDir . '/register_state.json';
+// 2. Find Active Register
+$stmt = $db->query("SELECT * FROM cash_registers WHERE status = 'open' ORDER BY id DESC LIMIT 1");
+$register = $stmt->fetch();
 
-// Calculate stats for the session being closed
-// Get previous start time
-$lastOpen = null;
-if (file_exists($registerFile)) {
-    $data = json_decode(file_get_contents($registerFile), true);
-    $lastOpen = $data['last_open'] ?? null;
+if (!$register) {
+    // If no register found in DB, maybe fallback or error?
+    // For migration, if no register is found, we might assume one started at "beginning of time" or create one on the fly?
+    // Let's return error to force user to "Open" strictly contextually, but since we are migrating, maybe we just close "nothing" or auto-create a closed one?
+    // Better: If no open register, say "Nenhum caixa aberto.".
+    echo json_encode(['success' => false, 'message' => "Nenhum caixa aberto para fechar."]);
+    exit;
 }
 
-// Default to beginning of time if no last open
-$startTimeQuery = $lastOpen ? $lastOpen : '1970-01-01 00:00:00';
+$registerId = $register['id'];
+$openedAt = $register['opened_at'];
 
-$stmt = $db->prepare("SELECT SUM(total_amount) as total, COUNT(*) as count FROM orders WHERE status = 'completed' AND created_at >= ?");
-$stmt->execute([$startTimeQuery]);
-$stats = $stmt->fetch();
+// 3. Calculate Totals
+$sql = "SELECT 
+            SUM(total_amount) as total_sales,
+            SUM(CASE WHEN payment_method = 'pix' THEN total_amount ELSE 0 END) as total_pix,
+            SUM(CASE WHEN payment_method = 'credit_card' THEN total_amount ELSE 0 END) as total_card,
+            SUM(CASE WHEN payment_method = 'debit_card' THEN total_amount ELSE 0 END) as total_debit, -- Assuming card field merges credit/debit or separate?
+            SUM(CASE WHEN payment_method = 'cash' THEN total_amount ELSE 0 END) as total_cash
+        FROM orders 
+        WHERE status = 'completed' AND created_at >= ?";
 
-// Save NEW start time (NOW)
-$now = date('Y-m-d H:i:s');
-file_put_contents($registerFile, json_encode(['last_open' => $now]));
+$stmt = $db->prepare($sql);
+$stmt->execute([$openedAt]);
+$totals = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Merge Debit into Card or keep separate? Table has 'total_card'. Let's sum credit+debit for 'total_card'.
+$totalCard = ($totals['total_card'] ?? 0) + ($totals['total_debit'] ?? 0);
+$totalPix = $totals['total_pix'] ?? 0;
+$totalCash = $totals['total_cash'] ?? 0;
+$totalSales = $totals['total_sales'] ?? 0;
+
+// 4. Calculate Final Balance
+// Balance = Initial + Cash Sales + Supplies - Bleeds
+// We need to fetch Supplies and Bleeds
+$stmtMov = $db->prepare("SELECT 
+                            SUM(CASE WHEN type='supply' THEN amount ELSE 0 END) as supply,
+                            SUM(CASE WHEN type='bleed' THEN amount ELSE 0 END) as bleed
+                         FROM cash_movements WHERE register_id = ?");
+$stmtMov->execute([$registerId]);
+$moves = $stmtMov->fetch(PDO::FETCH_ASSOC);
+
+$totalSupply = $moves['supply'] ?? 0;
+$totalBleed = $moves['bleed'] ?? 0;
+
+// Final Cash in Drawer (Teórico)
+$finalBalance = $register['initial_balance'] + $totalCash + $totalSupply - $totalBleed;
+
+// 5. Update Register
+$closeTime = date('Y-m-d H:i:s');
+$updateSql = "UPDATE cash_registers SET 
+                closed_at = ?, 
+                final_balance = ?, 
+                total_sales = ?, 
+                total_pix = ?, 
+                total_card = ?, 
+                total_cash = ?,
+                total_supply = ?, 
+                total_bleed = ?, 
+                status = 'closed' 
+              WHERE id = ?";
+$stmtUp = $db->prepare($updateSql);
+$stmtUp->execute([
+    $closeTime,
+    $finalBalance,
+    $totalSales,
+    $totalPix,
+    $totalCard,
+    $totalCash,
+    $totalSupply,
+    $totalBleed,
+    $registerId
+]);
 
 echo json_encode([
     'success' => true,
     'message' => 'Caixa fechado com sucesso!',
-    'revenue' => $stats['total'] ?? 0,
-    'count' => $stats['count'] ?? 0,
-    'closed_at' => $now
+    'summary' => [
+        'total_sales' => $totalSales,
+        'final_balance' => $finalBalance,
+        'details' => [
+            'pix' => $totalPix,
+            'card' => $totalCard,
+            'cash' => $totalCash
+        ]
+    ]
 ]);

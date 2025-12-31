@@ -339,3 +339,40 @@ CREATE TABLE IF NOT EXISTS access_logs (
   INDEX (created_at),
   INDEX (ip_address)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `cash_registers`
+--
+
+CREATE TABLE IF NOT EXISTS `cash_registers` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `opened_at` DATETIME NOT NULL,
+  `closed_at` DATETIME NULL,
+  `initial_balance` DECIMAL(10, 2) DEFAULT 0.00,
+  `final_balance` DECIMAL(10, 2) NULL,
+  `total_sales` DECIMAL(10, 2) DEFAULT 0.00,
+  `total_pix` DECIMAL(10, 2) DEFAULT 0.00,
+  `total_card` DECIMAL(10, 2) DEFAULT 0.00,
+  `total_cash` DECIMAL(10, 2) DEFAULT 0.00,
+  `total_supply` DECIMAL(10, 2) DEFAULT 0.00,
+  `total_bleed` DECIMAL(10, 2) DEFAULT 0.00,
+  `status` ENUM('open', 'closed') DEFAULT 'open',
+  `notes` TEXT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `cash_movements`
+--
+
+CREATE TABLE IF NOT EXISTS `cash_movements` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `register_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `type` ENUM('supply', 'bleed') NOT NULL,
+  `amount` DECIMAL(10, 2) NOT NULL,
+  `description` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`register_id`) REFERENCES `cash_registers`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

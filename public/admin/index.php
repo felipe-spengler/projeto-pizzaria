@@ -23,23 +23,42 @@ if (isset($_GET['logout'])) {
 $db = Database::getInstance()->getConnection();
 
 // Quick Stats (Mock logic until we have real orders populated)
-// Logic for "Caixa" (Register Session)
-$registerFile = __DIR__ . '/../../storage/register_state.json';
-// Default to today 00:00 if no session found
-$lastOpen = date('Y-m-d 00:00:00');
-if (file_exists($registerFile)) {
-    $data = json_decode(file_get_contents($registerFile), true);
-    $lastOpen = $data['last_open'] ?? $lastOpen;
-}
+// Check Active Register
+$stmtReg = $db->query("SELECT * FROM cash_registers WHERE status = 'open' ORDER BY id DESC LIMIT 1");
+$activeRegister = $stmtReg->fetch();
 
 $stats = [
-    // Revenue: Only COMPLETED orders in current session
-    'revenue' => $db->query("SELECT SUM(total_amount) FROM orders WHERE status = 'completed' AND created_at >= '$lastOpen'")->fetchColumn() ?: 0,
-    // Count: All orders in current session
-    'orders_count' => $db->query("SELECT COUNT(*) FROM orders WHERE created_at >= '$lastOpen'")->fetchColumn() ?: 0,
+    'revenue' => 0,
+    'orders_count' => 0,
     'pending_orders' => $db->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn() ?: 0,
-    'active_dishes' => 0 // Mock
+    'payment_method_breakdown' => []
 ];
+
+if ($activeRegister) {
+    // Calculate Stats for Current Session
+    $regStart = $activeRegister['opened_at'];
+
+    $sqlStats = "SELECT 
+                    SUM(total_amount) as total, 
+                    COUNT(*) as count,
+                    SUM(CASE WHEN payment_method = 'credit_card' OR payment_method = 'debit_card' THEN total_amount ELSE 0 END) as card,
+                    SUM(CASE WHEN payment_method = 'pix' THEN total_amount ELSE 0 END) as pix,
+                    SUM(CASE WHEN payment_method = 'cash' THEN total_amount ELSE 0 END) as cash
+                 FROM orders 
+                 WHERE status = 'completed' AND created_at >= ?";
+
+    $stmtStats = $db->prepare($sqlStats);
+    $stmtStats->execute([$regStart]);
+    $resStats = $stmtStats->fetch();
+
+    $stats['revenue'] = $resStats['total'] ?? 0;
+    $stats['orders_count'] = $resStats['count'] ?? 0;
+    $stats['payment_method_breakdown'] = [
+        'card' => $resStats['card'] ?? 0,
+        'pix' => $resStats['pix'] ?? 0,
+        'cash' => $resStats['cash'] ?? 0
+    ];
+}
 
 // Fetch Recent Orders
 $orders = $db->query("
@@ -85,24 +104,140 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
 ?>
 
 <!-- Your existing Dashboard HTML here -->
-<div class="mb-4 flex flex-col md:flex-row justify-end gap-4">
-    <button onclick="closeRegister()"
-        class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-md flex items-center gap-2 transition-all">
-        <i class="fas fa-cash-register"></i>
-        <span>Fechar Caixa</span>
-    </button>
+<div class="mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-4">
+        <?php if ($activeRegister): ?>
+            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-2">
+                <i class="fas fa-circle text-[8px]"></i> Caixa Aberto
+            </span>
+            <span class="text-xs text-gray-500">Início:
+                <?= date('d/m H:i', strtotime($activeRegister['opened_at'])) ?></span>
+        <?php else: ?>
+            <span
+                class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-2 animate-pulse">
+                <i class="fas fa-circle text-[8px]"></i> Caixa Fechado
+            </span>
+        <?php endif; ?>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <?php if ($activeRegister): ?>
+            <button onclick="openMovementsModal()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm flex items-center gap-2 transition-all text-sm">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Sangria/Suprimento</span>
+            </button>
+            <button onclick="closeRegister()"
+                class="bg-gray-900 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-lg shadow-md flex items-center gap-2 transition-all">
+                <i class="fas fa-door-closed"></i>
+                <span>Fechar Caixa</span>
+            </button>
+        <?php else: ?>
+            <button onclick="document.getElementById('openRegisterModal').classList.remove('hidden')"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md flex items-center gap-2 transition-all animate-bounce">
+                <i class="fas fa-door-open"></i>
+                <span>Abrir Caixa</span>
+            </button>
+        <?php endif; ?>
+    </div>
 </div>
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div
-        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-brand-200 transition-all">
-        <div>
-            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Caixa Atual (Concluídos)</p>
-            <h3 class="text-2xl font-bold text-gray-900">R$ <?= number_format($stats['revenue'], 2, ',', '.') ?></h3>
+
+<!-- Open Register Modal -->
+<div id="openRegisterModal"
+    class="fixed inset-0 bg-black/80 z-[70] <?= $activeRegister ? 'hidden' : 'flex' ?> items-center justify-center backdrop-blur-sm">
+    <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2 text-center">Abrir Caixa</h2>
+        <p class="text-gray-500 mb-6 text-center text-sm">Informe o valor inicial na gaveta (Troco).</p>
+
+        <form onsubmit="event.preventDefault(); openRegister();">
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Fundo de Troco (R$)</label>
+                <input type="number" id="initialBalance" step="0.01" value="0.00"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 text-xl font-bold text-center">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-check"></i>
+                Confirmar Abertura
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Movements Modal -->
+<div id="movementsModal" class="fixed inset-0 bg-black/50 z-[70] hidden items-center justify-center backdrop-blur-sm">
+    <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-xl relative">
+        <button onclick="document.getElementById('movementsModal').classList.add('hidden')"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2 class="text-xl font-bold text-gray-900 mb-6 text-center">Sangria / Suprimento</h2>
+
+        <div class="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
+            <button onclick="setMovType('supply')" id="btnSupply"
+                class="flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white shadow text-green-600">Suprimento</button>
+            <button onclick="setMovType('bleed')" id="btnBleed"
+                class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-white/50 transition-all">Sangria</button>
         </div>
-        <div
-            class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
-            <i class="fas fa-dollar-sign text-xl"></i>
+
+        <form onsubmit="event.preventDefault(); submitMovement();">
+            <input type="hidden" id="movType" value="supply">
+
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Valor (R$)</label>
+                <input type="number" id="movAmount" step="0.01" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-xl font-bold">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Descrição</label>
+                <input type="text" id="movDesc" required placeholder="Ex: Compra de gelo"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg">
+                Confirmar
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 <?= !$activeRegister ? 'opacity-50 pointer-events-none filter blur-[2px]' : '' ?>">
+    <!-- Faturamento Card Expandido -->
+    <div
+        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between group hover:border-brand-200 transition-all relative overflow-hidden">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Faturamento (Sessão)</p>
+                <h3 class="text-2xl font-bold text-gray-900">R$ <?= number_format($stats['revenue'], 2, ',', '.') ?>
+                </h3>
+            </div>
+            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-green-600">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+
+        <!-- Mini Breakdown -->
+        <div class="grid grid-cols-3 gap-2 text-xs border-t border-gray-100 pt-3">
+            <div class="text-center">
+                <span class="block text-gray-400 mb-1"><i class="fas fa-credit-card"></i> Card</span>
+                <span
+                    class="font-bold text-gray-700">R$<?= number_format($stats['payment_method_breakdown']['card'], 0, ',', '.') ?></span>
+            </div>
+            <div class="text-center border-l border-r border-gray-100 px-1">
+                <span class="block text-gray-400 mb-1"><i class="fas fa-qrcode"></i> Pix</span>
+                <span
+                    class="font-bold text-gray-700">R$<?= number_format($stats['payment_method_breakdown']['pix'], 0, ',', '.') ?></span>
+            </div>
+            <div class="text-center">
+                <span class="block text-gray-400 mb-1"><i class="fas fa-money-bill"></i> Din</span>
+                <span
+                    class="font-bold text-gray-700">R$<?= number_format($stats['payment_method_breakdown']['cash'], 0, ',', '.') ?></span>
+            </div>
         </div>
     </div>
 
@@ -455,15 +590,22 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
     // Run immediately
     checkLateOrders();
 
-    // Close Register Logic
     function closeRegister() {
-        if (!confirm('Deseja realmente fechar o caixa? Isso irá resetar o faturamento da sessão atual.')) return;
+        if (!confirm('Deseja realmente fechar o caixa? Isso irá consolidar o faturamento da sessão.')) return;
 
         fetch('/admin/api/close_register.php')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Caixa fechado com sucesso!\n\nFaturamento: R$ ${parseFloat(data.revenue).toFixed(2)}\nPedidos: ${data.count}`);
+                    let msg = `✅ Caixa fechado com sucesso!\n\n`;
+                    msg += `💰 Fat. Total: R$ ${parseFloat(data.summary.total_sales).toFixed(2)}\n`;
+                    msg += `💵 Saldo Final (Gaveta): R$ ${parseFloat(data.summary.final_balance).toFixed(2)}\n\n`;
+                    msg += `Detalhes:\n`;
+                    msg += `💳 Cartão: R$ ${parseFloat(data.summary.details.card).toFixed(2)}\n`;
+                    msg += `💠 Pix: R$ ${parseFloat(data.summary.details.pix).toFixed(2)}\n`;
+                    msg += `💵 Dinheiro: R$ ${parseFloat(data.summary.details.cash).toFixed(2)}`;
+
+                    alert(msg);
                     location.reload();
                 } else {
                     alert('Erro: ' + data.message);
@@ -472,6 +614,63 @@ include __DIR__ . '/../../views/admin/layouts/header.php';
             .catch(err => {
                 console.error(err);
                 alert('Erro ao conectar com o servidor.');
+            });
+    }
+
+    function openRegister() {
+        const initial = document.getElementById('initialBalance').value;
+        const formData = new FormData();
+        formData.append('initial_balance', initial);
+
+        fetch('/admin/api/open_register.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+    }
+
+    // Movements Logic
+    function openMovementsModal() {
+        document.getElementById('movementsModal').classList.remove('hidden');
+    }
+
+    function setMovType(type) {
+        document.getElementById('movType').value = type;
+        const btnSupply = document.getElementById('btnSupply');
+        const btnBleed = document.getElementById('btnBleed');
+
+        if (type === 'supply') {
+            btnSupply.className = 'flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white shadow text-green-600';
+            btnBleed.className = 'flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-white/50 transition-all';
+        } else {
+            btnBleed.className = 'flex-1 py-2 rounded-lg text-sm font-bold transition-all bg-white shadow text-red-600';
+            btnSupply.className = 'flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-white/50 transition-all';
+        }
+    }
+
+    function submitMovement() {
+        const type = document.getElementById('movType').value;
+        const amount = document.getElementById('movAmount').value;
+        const desc = document.getElementById('movDesc').value;
+
+        const formData = new FormData();
+        formData.append('type', type);
+        formData.append('amount', amount);
+        formData.append('description', desc);
+
+        fetch('/admin/api/cash_movement.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Movimentação registrada!');
+                    location.reload();
+                } else {
+                    alert('Erro: ' + data.message);
+                }
             });
     }
 </script>

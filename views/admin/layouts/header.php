@@ -89,6 +89,13 @@
                     <span class="font-medium">Métricas</span>
                 </a>
 
+                <p class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-8">Financeiro</p>
+                <a href="financial.php"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl <?= strpos($uri, 'financial.php') !== false ? $activeClass : $inactiveClass ?>">
+                    <i class="fas fa-file-invoice-dollar w-5"></i>
+                    <span class="font-medium">Histórico de Caixas</span>
+                </a>
+
                 <p class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-8">Cardápio</p>
                 <a href="products.php"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $isProducts ? $activeClass : $inactiveClass ?>">
