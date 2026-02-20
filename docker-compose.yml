@@ -6,18 +6,15 @@ services:
       context: .
       dockerfile: Dockerfile
     image: pizzaria-app
-    # app nao precisa expor porta para o host,
     ports:
-      - "5000:5000"
-    # Em produção, usaremos o código dentro da imagem, não via volume montado
-    # volumes:
-    #   - .:/var/www/html
+      - "5000:80"
     environment:
       - APACHE_DOCUMENT_ROOT=/var/www/html/public
       - DB_HOST=mysql
-      - DB_NAME=pizzaria
-      - DB_USER=pizzaria_user
-      - DB_PASS=secret123
+      - DB_NAME=${DB_NAME:-pizzaria}
+      - DB_USER=${DB_USER:-pizzaria_user}
+      - DB_PASS=${DB_PASS:-secret123}
+      - DB_PASSWORD=${DB_PASSWORD:-secret123}
     depends_on:
       - mysql
     networks:
@@ -25,15 +22,12 @@ services:
 
   mysql:
     image: mysql:8.0
-    # command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
-      MYSQL_DATABASE: pizzaria
-      MYSQL_USER: pizzaria_user
-      MYSQL_PASSWORD: secret123
-      MYSQL_ROOT_PASSWORD: root_secret
-    # Dados Persistentes: O volume mysql_data garante que os dados não sejam perdidos
-    # mesmo que você recrie os containers.
+      MYSQL_DATABASE: ${DB_NAME:-pizzaria}
+      MYSQL_USER: ${DB_USER:-pizzaria_user}
+      MYSQL_PASSWORD: ${DB_PASS:-secret123}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secret}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
@@ -43,20 +37,28 @@ services:
       - "3307:3306"
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    links:
-      - mysql:db
-    ports:
-      - "5001:80"
+    image: phpmyadmin/phpmyadmin:latest
+    restart: always
+    depends_on:
+      - mysql
     environment:
       PMA_HOST: mysql
-      MYSQL_ROOT_PASSWORD: root_secret
+      PMA_PORT: 3306
+      # URL completa onde o phpMyAdmin será acessado (subpath /db)
+      PMA_ABSOLUTE_URI: https://pizzaria.techinteligente.site/db/
+      # Obriga login por usuário/senha (não salva credenciais automaticamente)
+      PMA_USER: ""
+      PMA_PASSWORD: ""
+      # Desativa login automático — usuário deve digitar user e senha
+      HIDE_PHP_VERSION: "true"
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "5001:80"
     networks:
       - pizzaria-net
 
 volumes:
   mysql_data:
-
 
 networks:
   pizzaria-net:

@@ -1,6 +1,8 @@
 <IfModule mod_rewrite.c>
     Options -MultiViews
     RewriteEngine On
+    # Não redireciona /db/ para index.php (é o proxy do phpMyAdmin)
+    RewriteRule ^db(/.*)?$ - [L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ index.php [QSA,L]
