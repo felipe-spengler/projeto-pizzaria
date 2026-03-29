@@ -36,27 +36,6 @@ services:
     ports:
       - "3307:3306"
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    restart: always
-    depends_on:
-      - mysql
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      # URL completa onde o phpMyAdmin será acessado (subpath /db)
-      PMA_ABSOLUTE_URI: https://pizzaria.techinteligente.site/db/
-      # Obriga login por usuário/senha (não salva credenciais automaticamente)
-      PMA_USER: ""
-      PMA_PASSWORD: ""
-      # Desativa login automático — usuário deve digitar user e senha
-      HIDE_PHP_VERSION: "true"
-      UPLOAD_LIMIT: 64M
-    ports:
-      - "5001:80"
-    networks:
-      - pizzaria-net
-
 volumes:
   mysql_data:
 
