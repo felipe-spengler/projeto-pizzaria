@@ -40,10 +40,13 @@ class Database
             $this->conn = new PDO(
                 "mysql:host=$host;dbname=$db_name;charset=utf8mb4",
                 $username,
-                $password
+                $password,
+                [
+                    PDO::ATTR_PERSISTENT => true,
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                ]
             );
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
             // Define o fuso horário para São Paulo (UTC-3)
             $this->conn->exec("SET time_zone = '-03:00'");

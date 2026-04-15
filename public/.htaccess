@@ -1,6 +1,15 @@
 <IfModule mod_rewrite.c>
     Options -MultiViews
     RewriteEngine On
+    
+    # Bloqueia acesso a arquivos ocultos (.git, .env, etc)
+    RewriteRule ^\.(.*) - [F,L]
+
+    # Previne que bots busquem extensões comuns e executem o index.php (economiza CPU/RAM)
+    RewriteCond %{REQUEST_URI} \.(php|asp|aspx|jsp|cgi|pl|cfm|shtml|sql|env|md|txt|log|git)$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ - [R=404,L]
+
     # Não redireciona /db/ para index.php (é o proxy do phpMyAdmin)
     RewriteRule ^db(/.*)?$ - [L]
     RewriteCond %{REQUEST_FILENAME} !-f

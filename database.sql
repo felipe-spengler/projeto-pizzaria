@@ -96,6 +96,7 @@ CREATE TABLE `orders` (
   `viewed` boolean DEFAULT FALSE,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  INDEX (`created_at`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

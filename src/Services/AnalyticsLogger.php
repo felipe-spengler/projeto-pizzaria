@@ -96,7 +96,7 @@ class AnalyticsLogger
         // Tentar obter localização via API (Timeout curto de 1s para não travar o site)
         $url = "http://ip-api.com/json/{$ip}?fields=status,country,regionName,city";
 
-        $ctx = stream_context_create(['http' => ['timeout' => 1]]);
+        $ctx = stream_context_create(['http' => ['timeout' => 0.5]]);
 
         try {
             $json = @file_get_contents($url, false, $ctx);
