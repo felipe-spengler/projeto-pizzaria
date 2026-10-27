@@ -3,7 +3,7 @@
     "description": "Sistema de Pedidos para Pizzaria",
     "type": "project",
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2.35",
         "ext-pdo": "*",
         "ext-pdo_mysql": "*",
         "vlucas/phpdotenv": "^5.5",

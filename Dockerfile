@@ -1,4 +1,7 @@
-FROM php:8.2-apache
+FROM php:8.2.35-apache
+
+# Mitigação de vulnerabilidade PHP2Shell / Upload progress
+RUN echo "session.upload_progress.enabled=0" > /usr/local/etc/php/conf.d/security.ini
 
 # Install system dependencies and php extensions
 RUN apt-get update && apt-get install -y \
